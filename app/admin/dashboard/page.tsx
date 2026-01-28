@@ -43,9 +43,9 @@ export default function AdminDashboardPage() {
     },
     {
       title: 'Growth Rate',
-      value: '24.5%',
+      value: `${stats?.growthRate || 0}%`,
       icon: TrendingUp,
-      change: '+2.1%',
+      change: stats?.growthRate && stats.growthRate > 0 ? `+${stats.growthRate}%` : `${stats?.growthRate || 0}%`,
     },
   ]
 

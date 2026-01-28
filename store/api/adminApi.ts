@@ -66,6 +66,9 @@ export const adminApi = baseApi.injectEndpoints({
     // Get Dashboard Stats
     getDashboardStats: builder.query<any, void>({
       query: () => '/admin/dashboard',
+      transformResponse: (response: { success: boolean; message: string; data: { totalRevenue: number; totalOrders: number; totalUsers: number; growthRate: number } }) => {
+        return response.data || {}
+      },
     }),
 
     // Get Dashboard Revenue
