@@ -17,7 +17,7 @@ export function FlashDeals() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold">Flash Deals</h2>
-            <p className="text-muted-foreground">Limited time offers - Don't miss out!</p>
+            <p className="text-muted-foreground">Limited time offers on premium ghee - Don't miss out!</p>
           </div>
           <div className="flex items-center space-x-2 text-sm">
             <Clock className="h-4 w-4" />
@@ -29,7 +29,7 @@ export function FlashDeals() {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold">Up to 50% Off</h3>
               <p className="text-muted-foreground">
-                Selected items with massive discounts. Shop now before they're gone!
+                Selected ghee products with massive discounts. Shop now before they're gone!
               </p>
               <Link href={`${ROUTES.PRODUCTS}?sort=discount`}>
                 <Button>Shop Flash Deals</Button>
@@ -41,13 +41,13 @@ export function FlashDeals() {
                 On orders over $100. No code needed - automatically applied at checkout.
               </p>
               <Link href={ROUTES.PRODUCTS}>
-                <Button variant="outline">Browse Products</Button>
+                <Button variant="outline">Browse Ghee</Button>
               </Link>
             </div>
             <div className="space-y-4">
               <h3 className="text-xl font-semibold">New Arrivals</h3>
               <p className="text-muted-foreground">
-                Check out our latest collection of premium products.
+                Check out our latest collection of premium ghee products.
               </p>
               <Link href={`${ROUTES.PRODUCTS}?sort=newest`}>
                 <Button variant="outline">View New Arrivals</Button>

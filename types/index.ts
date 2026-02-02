@@ -27,6 +27,11 @@ export interface Product {
   rating: number
   reviewCount: number
   featured: boolean
+  gheeType?: 'cow' | 'buffalo' | 'mixed' // Type of ghee: cow ghee, buffalo ghee, or mixed
+  weight?: number // Weight in grams or kg
+  purity?: number // Purity percentage (e.g., 99.9%)
+  origin?: string // Origin/region of the ghee
+  shelfLife?: string // Shelf life information
   createdAt: string
   updatedAt: string
 }
@@ -35,8 +40,10 @@ export interface Category {
   id: string
   name: string
   slug: string
+  description?: string
   image?: string
   parentId?: string
+  isActive?: boolean
 }
 
 export interface CartItem {
@@ -125,7 +132,9 @@ export interface Review {
   userId: string
   rating: number
   comment: string
+  status?: 'pending' | 'approved' | 'rejected'
   createdAt: string
+  updatedAt?: string
   user: {
     name: string
     avatar?: string

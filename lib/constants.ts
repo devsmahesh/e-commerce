@@ -15,7 +15,23 @@ export const ROUTES = {
     USERS: '/admin/users',
     COUPONS: '/admin/coupons',
     BANNERS: '/admin/banners',
+    CATEGORIES: '/admin/categories',
   },
+} as const
+
+// Ghee-specific constants
+export const GHEE_TYPES = {
+  COW: 'cow',
+  BUFFALO: 'buffalo',
+  MIXED: 'mixed',
+} as const
+
+export const GHEE_WEIGHTS = {
+  '250g': 250,
+  '500g': 500,
+  '1kg': 1000,
+  '2kg': 2000,
+  '5kg': 5000,
 } as const
 
 export const ORDER_STATUS = {

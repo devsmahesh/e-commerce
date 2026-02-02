@@ -6,14 +6,16 @@ import { Button } from '@/components/ui/button'
 import { useCreateOrderMutation } from '@/store/api/ordersApi'
 import { useToast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
+import { Address } from '@/types'
 
 interface CheckoutFormProps {
-  addressId: string
+  address: Address
   total: number
+  shippingCost: number
   onSuccess: () => void
 }
 
-export function CheckoutForm({ addressId, total, onSuccess }: CheckoutFormProps) {
+export function CheckoutForm({ address, total, shippingCost, onSuccess }: CheckoutFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const { toast } = useToast()
@@ -31,9 +33,14 @@ export function CheckoutForm({ addressId, total, onSuccess }: CheckoutFormProps)
       // Then confirm payment with Stripe
       // For now, we'll create order directly
       await createOrder({
-        shippingAddressId: addressId,
-        billingAddressId: addressId,
-        paymentMethod: 'card',
+        shippingAddress: {
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          zipCode: address.zipCode,
+          country: address.country,
+        },
+        shippingCost,
       }).unwrap()
 
       onSuccess()

@@ -10,6 +10,8 @@ interface FiltersSidebarProps {
   onCategoryChange: (category: string) => void
   sort: string
   onSortChange: (sort: string) => void
+  gheeType?: string
+  onGheeTypeChange?: (gheeType: string) => void
 }
 
 export function FiltersSidebar({
@@ -17,6 +19,8 @@ export function FiltersSidebar({
   onCategoryChange,
   sort,
   onSortChange,
+  gheeType,
+  onGheeTypeChange,
 }: FiltersSidebarProps) {
   const { data: categoriesResponse } = useGetCategoriesQuery({})
   const categories = Array.isArray(categoriesResponse) ? categoriesResponse : categoriesResponse?.data || []
@@ -44,6 +48,23 @@ export function FiltersSidebar({
               </SelectContent>
             </Select>
           </div>
+
+          {onGheeTypeChange && (
+            <div className="space-y-2">
+              <Label>Ghee Type</Label>
+              <Select value={gheeType || 'all'} onValueChange={(value) => onGheeTypeChange(value === 'all' ? '' : value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="cow">Cow Ghee</SelectItem>
+                  <SelectItem value="buffalo">Buffalo Ghee</SelectItem>
+                  <SelectItem value="mixed">Mixed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Sort By</Label>

@@ -20,6 +20,7 @@ export default function ProductsPage() {
   const [category, setCategory] = useState<string>('')
   const [search, setSearch] = useState<string>('')
   const [sort, setSort] = useState<string>('')
+  const [gheeType, setGheeType] = useState<string>('')
   
   // Parse sort string into sortBy and sortOrder
   const getSortParams = () => {
@@ -36,6 +37,8 @@ export default function ProductsPage() {
     limit: 12, 
     categoryId: category || undefined, 
     search: search || undefined, 
+    gheeType: gheeType ? (gheeType as 'cow' | 'buffalo' | 'mixed') : undefined,
+    isActive: true, // Only show active products to public users
     ...getSortParams()
   })
   const products = Array.isArray(productsResponse?.data) ? productsResponse.data : []
@@ -71,9 +74,9 @@ export default function ProductsPage() {
       <main className="min-h-screen py-8">
         <div className="container mx-auto px-4">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold">All Products</h1>
+            <h1 className="text-4xl font-bold">Premium Ghee Products</h1>
             <p className="mt-2 text-muted-foreground">
-              Discover our complete collection of premium products
+              Discover our complete collection of premium cow and buffalo ghee
             </p>
           </div>
 
@@ -85,6 +88,8 @@ export default function ProductsPage() {
                 onCategoryChange={setCategory}
                 sort={sort}
                 onSortChange={setSort}
+                gheeType={gheeType}
+                onGheeTypeChange={setGheeType}
               />
             </div>
 

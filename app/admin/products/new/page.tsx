@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useCreateProductMutation } from '@/store/api/productsApi'
+import { useCreateProductMutation, useUploadProductImageMutation } from '@/store/api/productsApi'
 import { useGetCategoriesQuery } from '@/store/api/categoriesApi'
 import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Plus, X } from 'lucide-react'
+import { ArrowLeft, Plus, X, Upload, Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 const productSchema = Yup.object().shape({
   name: Yup.string().required('Product name is required'),
@@ -28,11 +29,24 @@ const productSchema = Yup.object().shape({
     .min(0, 'Stock must be at least 0'),
   categoryId: Yup.string().required('Category is required'),
   images: Yup.array()
-    .of(Yup.string().url('Must be a valid URL'))
-    .min(1, 'At least one image is required'),
+    .of(Yup.string().nullable()) // Allow any string or null (URLs or relative paths)
+    .nullable() // Allow null/undefined
+    .test('images-optional', '', function(value) {
+      // Skip Yup validation - we'll validate in handleSubmit to account for selected files
+      return true
+    }),
   tags: Yup.array().of(Yup.string()),
   isFeatured: Yup.boolean(),
   isActive: Yup.boolean(),
+  // Ghee-specific fields
+  gheeType: Yup.string().oneOf(['cow', 'buffalo', 'mixed'], 'Invalid ghee type'),
+  weight: Yup.number().positive('Weight must be positive'),
+  purity: Yup.number().min(0).max(100, 'Purity must be between 0 and 100'),
+  origin: Yup.string(),
+  shelfLife: Yup.string(),
+  compareAtPrice: Yup.number().min(0),
+  sku: Yup.string(),
+  brand: Yup.string(),
 })
 
 export default function NewProductPage() {
@@ -43,6 +57,9 @@ export default function NewProductPage() {
     ? categoriesResponse 
     : (categoriesResponse as any)?.data || []
   const [createProduct, { isLoading }] = useCreateProductMutation()
+  const [uploadProductImage, { isLoading: isUploading }] = useUploadProductImageMutation()
+  const [selectedFiles, setSelectedFiles] = React.useState<File[]>([])
+  const [filePreviews, setFilePreviews] = React.useState<{ [key: number]: string }>({})
 
   const initialValues = {
     name: '',
@@ -54,20 +71,145 @@ export default function NewProductPage() {
     tags: [] as string[],
     isFeatured: false,
     isActive: true,
+    // Ghee-specific fields
+    gheeType: '' as 'cow' | 'buffalo' | 'mixed' | '',
+    weight: '',
+    purity: '',
+    origin: '',
+    shelfLife: '',
+    compareAtPrice: '',
+    sku: '',
+    brand: '',
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+
+    // Validate all files
+    const validFiles: File[] = []
+    files.forEach((file) => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Invalid file type',
+          description: `${file.name} is not an image file.`,
+          variant: 'destructive',
+        })
+        return
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'File too large',
+          description: `${file.name} exceeds 5MB limit.`,
+          variant: 'destructive',
+        })
+        return
+      }
+
+      validFiles.push(file)
+    })
+
+    // Add valid files and create previews
+    const newFiles = [...selectedFiles, ...validFiles]
+    setSelectedFiles(newFiles)
+
+    // Create previews for new files
+    validFiles.forEach((file, index) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFilePreviews((prev) => ({
+          ...prev,
+          [selectedFiles.length + index]: reader.result as string,
+        }))
+      }
+      reader.readAsDataURL(file)
+    })
+
+    // Reset input
+    e.target.value = ''
+  }
+
+  const handleRemoveFile = (index: number) => {
+    const newFiles = selectedFiles.filter((_, i) => i !== index)
+    setSelectedFiles(newFiles)
+    setFilePreviews((prev) => {
+      const newPreviews = { ...prev }
+      delete newPreviews[index]
+      // Reindex remaining previews
+      const reindexed: { [key: number]: string } = {}
+      newFiles.forEach((_, i) => {
+        if (prev[i] !== undefined) {
+          reindexed[i] = prev[i]
+        }
+      })
+      return reindexed
+    })
   }
 
   const handleSubmit = async (values: typeof initialValues) => {
+    // Validate that we have at least one image (either existing or files to upload)
+    if (values.images.length === 0 && selectedFiles.length === 0) {
+      toast({
+        title: 'Validation Error',
+        description: 'At least one image is required. Please upload an image file.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     try {
+      let imageUrls = [...values.images]
+
+      // Upload files if any are selected
+      if (selectedFiles.length > 0) {
+        const uploadPromises = selectedFiles.map(async (file) => {
+          const formData = new FormData()
+          formData.append('image', file)
+          
+          try {
+            const uploadResult = await uploadProductImage(formData).unwrap()
+            return uploadResult.url || uploadResult.data?.url
+          } catch (uploadError: any) {
+            toast({
+              title: 'Upload Error',
+              description: `Failed to upload ${file.name}: ${uploadError?.data?.message || 'Unknown error'}`,
+              variant: 'destructive',
+            })
+            throw uploadError
+          }
+        })
+
+        try {
+          const uploadedUrls = await Promise.all(uploadPromises)
+          imageUrls = [...imageUrls, ...uploadedUrls.filter(Boolean)]
+        } catch (error) {
+          // Error already handled in toast
+          return
+        }
+      }
+
       await createProduct({
         name: values.name,
         description: values.description,
         price: parseFloat(values.price as string),
         stock: parseInt(values.stock as string),
         categoryId: values.categoryId,
-        images: values.images,
+        images: imageUrls,
         tags: values.tags.length > 0 ? values.tags : undefined,
         isFeatured: values.isFeatured,
         isActive: values.isActive,
+        // Ghee-specific fields
+        gheeType: values.gheeType ? (values.gheeType as 'cow' | 'buffalo' | 'mixed') : undefined,
+        weight: values.weight ? parseFloat(values.weight as string) : undefined,
+        purity: values.purity ? parseFloat(values.purity as string) : undefined,
+        origin: values.origin || undefined,
+        shelfLife: values.shelfLife || undefined,
+        compareAtPrice: values.compareAtPrice ? parseFloat(values.compareAtPrice as string) : undefined,
+        sku: values.sku || undefined,
+        brand: values.brand || undefined,
       }).unwrap()
 
       toast({
@@ -93,8 +235,8 @@ export default function NewProductPage() {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Products
           </Link>
-          <h1 className="text-4xl font-bold text-slate-900">Add New Product</h1>
-          <p className="mt-2 text-slate-600">Create a new product for your catalog</p>
+          <h1 className="text-4xl font-bold text-slate-900">Add New Ghee Product</h1>
+          <p className="mt-2 text-slate-600">Create a new ghee product for your catalog</p>
         </div>
       </div>
 
@@ -104,16 +246,7 @@ export default function NewProductPage() {
         onSubmit={handleSubmit}
       >
         {({ values, errors, touched, setFieldValue, isSubmitting }) => {
-          const [imageUrl, setImageUrl] = React.useState('')
           const [tagInput, setTagInput] = React.useState('')
-
-          const handleAddImage = () => {
-            if (imageUrl.trim()) {
-              const newImages = [...values.images, imageUrl.trim()]
-              setFieldValue('images', newImages)
-              setImageUrl('')
-            }
-          }
 
           const handleRemoveImage = (index: number) => {
             const newImages = values.images.filter((_, i) => i !== index)
@@ -227,6 +360,20 @@ export default function NewProductPage() {
                       </div>
 
                       <div className="space-y-2">
+                        <Label htmlFor="compareAtPrice">Compare At Price</Label>
+                        <Field
+                          as={Input}
+                          id="compareAtPrice"
+                          name="compareAtPrice"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                        />
+                        <ErrorMessage name="compareAtPrice" component="p" className="text-sm text-destructive" />
+                      </div>
+
+                      <div className="space-y-2">
                         <Label htmlFor="stock">Stock Quantity *</Label>
                         <Field
                           as={Input}
@@ -237,6 +384,104 @@ export default function NewProductPage() {
                           placeholder="0"
                         />
                         <ErrorMessage name="stock" component="p" className="text-sm text-destructive" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="sku">SKU</Label>
+                        <Field
+                          as={Input}
+                          id="sku"
+                          name="sku"
+                          placeholder="Product SKU"
+                        />
+                        <ErrorMessage name="sku" component="p" className="text-sm text-destructive" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="brand">Brand</Label>
+                        <Field
+                          as={Input}
+                          id="brand"
+                          name="brand"
+                          placeholder="Brand name"
+                        />
+                        <ErrorMessage name="brand" component="p" className="text-sm text-destructive" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-white border border-gray-200 shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="text-slate-900">Ghee Specifications</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="gheeType">Ghee Type</Label>
+                        <Select
+                          value={values.gheeType || 'none'}
+                          onValueChange={(value) => setFieldValue('gheeType', value === 'none' ? '' : value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select ghee type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            <SelectItem value="cow">Cow Ghee</SelectItem>
+                            <SelectItem value="buffalo">Buffalo Ghee</SelectItem>
+                            <SelectItem value="mixed">Mixed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <ErrorMessage name="gheeType" component="p" className="text-sm text-destructive" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="weight">Weight (grams)</Label>
+                        <Field
+                          as={Input}
+                          id="weight"
+                          name="weight"
+                          type="number"
+                          min="0"
+                          placeholder="e.g., 500"
+                        />
+                        <ErrorMessage name="weight" component="p" className="text-sm text-destructive" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="purity">Purity (%)</Label>
+                        <Field
+                          as={Input}
+                          id="purity"
+                          name="purity"
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          placeholder="e.g., 99.9"
+                        />
+                        <ErrorMessage name="purity" component="p" className="text-sm text-destructive" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="origin">Origin/Region</Label>
+                        <Field
+                          as={Input}
+                          id="origin"
+                          name="origin"
+                          placeholder="e.g., Punjab, India"
+                        />
+                        <ErrorMessage name="origin" component="p" className="text-sm text-destructive" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="shelfLife">Shelf Life</Label>
+                        <Field
+                          as={Input}
+                          id="shelfLife"
+                          name="shelfLife"
+                          placeholder="e.g., 12 months"
+                        />
+                        <ErrorMessage name="shelfLife" component="p" className="text-sm text-destructive" />
                       </div>
                     </CardContent>
                   </Card>
@@ -250,42 +495,97 @@ export default function NewProductPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="imageUrl">Image URL</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id="imageUrl"
-                            type="url"
-                            value={imageUrl}
-                            onChange={(e) => setImageUrl(e.target.value)}
-                            placeholder="https://example.com/image.jpg"
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault()
-                                handleAddImage()
-                              }
-                            }}
-                          />
-                          <Button type="button" onClick={handleAddImage} variant="outline">
-                            <Plus className="h-4 w-4" />
-                          </Button>
+                        <Label htmlFor="imageFiles">Upload Images *</Label>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="file"
+                              id="imageFiles"
+                              accept="image/*"
+                              multiple
+                              onChange={handleFileChange}
+                              className="hidden"
+                            />
+                            <label
+                              htmlFor="imageFiles"
+                              className="flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors flex-1"
+                            >
+                              <Upload className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                {selectedFiles.length > 0 
+                                  ? `${selectedFiles.length} file(s) selected` 
+                                  : 'Choose image files'}
+                              </span>
+                            </label>
+                          </div>
+                          {selectedFiles.length > 0 && (
+                            <div className="space-y-2">
+                              {selectedFiles.map((file, index) => (
+                                <div key={index} className="flex items-center gap-2 rounded-lg border border-border p-2">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm truncate">{file.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                                    </p>
+                                  </div>
+                                  {filePreviews[index] && (
+                                    <div className="relative w-12 h-12 rounded border border-gray-200 overflow-hidden bg-muted">
+                                      <Image
+                                        src={filePreviews[index]}
+                                        alt={`Preview ${index + 1}`}
+                                        fill
+                                        className="object-cover"
+                                        sizes="48px"
+                                      />
+                                    </div>
+                                  )}
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleRemoveFile(index)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            Supported formats: JPG, PNG, GIF, WebP. Max size: 5MB per file. You can select multiple files.
+                          </p>
                         </div>
                       </div>
 
                       {values.images.length > 0 && (
                         <div className="space-y-2">
-                          <Label>Added Images</Label>
-                          <div className="space-y-2">
+                          <Label>Uploaded Images ({values.images.length})</Label>
+                          <div className="grid grid-cols-2 gap-4">
                             {values.images.map((image, index) => (
-                              <div key={index} className="flex items-center gap-2 rounded-lg border border-border p-2">
-                                <span className="flex-1 truncate text-sm">{image}</span>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleRemoveImage(index)}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
+                              <div key={index} className="relative group rounded-lg border border-border overflow-hidden bg-muted">
+                                <div className="relative aspect-square w-full">
+                                  <Image
+                                    src={image}
+                                    alt={`Product image ${index + 1}`}
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 768px) 50vw, 200px"
+                                  />
+                                </div>
+                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => handleRemoveImage(index)}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <div className="p-2 bg-background/80 backdrop-blur-sm">
+                                  <p className="text-xs text-muted-foreground truncate">{image}</p>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -386,8 +686,8 @@ export default function NewProductPage() {
                     Cancel
                   </Button>
                 </Link>
-                <Button type="submit" disabled={isLoading || isSubmitting}>
-                  {isLoading || isSubmitting ? 'Creating...' : 'Create Product'}
+                <Button type="submit" disabled={isLoading || isSubmitting || isUploading}>
+                  {isLoading || isSubmitting || isUploading ? 'Creating...' : 'Create Product'}
                 </Button>
               </div>
             </Form>

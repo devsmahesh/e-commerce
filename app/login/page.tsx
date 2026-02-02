@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
@@ -25,10 +25,14 @@ const loginSchema = Yup.object().shape({
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const [login, { isLoading }] = useLoginMutation()
   const { refetch: refetchProfile } = useGetProfileQuery(undefined, { skip: true })
+  
+  // Get return URL from query params
+  const returnUrl = searchParams.get('returnUrl')
 
   const initialValues = {
     email: '',
@@ -68,11 +72,13 @@ export default function LoginPage() {
         description: 'You have successfully logged in.',
       })
       
-      // Redirect admin users to admin dashboard, regular users to home
+      // Redirect admin users to admin dashboard
       if (user.role === 'admin') {
         router.push(ROUTES.ADMIN.DASHBOARD)
       } else {
-        router.push(ROUTES.HOME)
+        // Redirect to return URL if provided, otherwise go to home
+        const redirectUrl = returnUrl ? decodeURIComponent(returnUrl) : ROUTES.HOME
+        router.push(redirectUrl)
       }
     } catch (error: any) {
       toast({

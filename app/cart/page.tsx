@@ -1,5 +1,7 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { CartDrawer } from '@/components/shop/cart-drawer'
@@ -13,10 +15,20 @@ import { Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants'
+import { LoginModal } from '@/components/auth/login-modal'
+import { tokenManager } from '@/lib/token'
 
 export default function CartPage() {
   const dispatch = useAppDispatch()
+  const router = useRouter()
   const items = useAppSelector((state) => state.cart.items)
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
+  const [showLoginModal, setShowLoginModal] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const tax = subtotal * 0.1
@@ -33,6 +45,16 @@ export default function CartPage() {
 
   const handleRemove = (id: string) => {
     dispatch(removeItem(id))
+  }
+
+  const handleProceedToCheckout = () => {
+    const hasAuth = mounted && (isAuthenticated || tokenManager.getAccessToken())
+    
+    if (!hasAuth) {
+      setShowLoginModal(true)
+    } else {
+      router.push(ROUTES.CHECKOUT)
+    }
   }
 
   return (
@@ -166,17 +188,21 @@ export default function CartPage() {
                         </div>
                       </div>
                     </div>
-                    <Link href={ROUTES.CHECKOUT}>
-                      <Button className="w-full" size="lg">
+                    <div className="space-y-3">
+                      <Button 
+                        className="w-full" 
+                        size="lg"
+                        onClick={handleProceedToCheckout}
+                      >
                         Proceed to Checkout
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
-                    </Link>
-                    <Link href={ROUTES.PRODUCTS}>
-                      <Button variant="outline" className="w-full">
-                        Continue Shopping
-                      </Button>
-                    </Link>
+                      <Link href={ROUTES.PRODUCTS}>
+                        <Button variant="outline" className="w-full">
+                          Continue Shopping
+                        </Button>
+                      </Link>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
@@ -186,6 +212,10 @@ export default function CartPage() {
       </main>
       <Footer />
       <CartDrawer />
+      <LoginModal 
+        open={showLoginModal} 
+        onOpenChange={setShowLoginModal}
+      />
     </>
   )
 }

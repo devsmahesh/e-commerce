@@ -15,7 +15,11 @@ import { useToast } from '@/hooks/use-toast'
 export default function SearchPage() {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
-  const { data, isLoading } = useGetProductsQuery({ search: query, page: 1 })
+  const { data, isLoading } = useGetProductsQuery({ 
+    search: query, 
+    page: 1,
+    isActive: true // Only show active products to public users
+  })
   const dispatch = useAppDispatch()
   const { toast } = useToast()
 
@@ -48,11 +52,11 @@ export default function SearchPage() {
         <div className="container mx-auto px-4">
           <div className="mb-8">
             <h1 className="text-4xl font-bold">
-              Search Results {query && `for "${query}"`}
+              Search Ghee Products {query && `for "${query}"`}
             </h1>
             {data && (
               <p className="mt-2 text-muted-foreground">
-                Found {data.meta.total} {data.meta.total === 1 ? 'result' : 'results'}
+                Found {data.meta.total} {data.meta.total === 1 ? 'ghee product' : 'ghee products'}
               </p>
             )}
           </div>
@@ -77,7 +81,7 @@ export default function SearchPage() {
           ) : (
             <div className="py-12 text-center">
               <p className="text-lg text-muted-foreground">
-                No products found. Try a different search term.
+                No ghee products found. Try a different search term.
               </p>
             </div>
           )}

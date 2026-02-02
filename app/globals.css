@@ -6,11 +6,11 @@
   :root {
     --background: 248 250 252;
     --foreground: 15 23 42;
-    --primary: 15 23 42;
-    --primary-foreground: 248 250 252;
-    --secondary: 245 158 11;
+    --primary: 103 3 63;
+    --primary-foreground: 255 255 255;
+    --secondary: 248 156 29;
     --secondary-foreground: 15 23 42;
-    --accent: 245 158 11;
+    --accent: 248 156 29;
     --accent-foreground: 15 23 42;
     --destructive: 239 68 68;
     --success: 34 197 94;
@@ -24,11 +24,11 @@
   .dark {
     --background: 15 23 42;
     --foreground: 248 250 252;
-    --primary: 248 250 252;
-    --primary-foreground: 15 23 42;
-    --secondary: 245 158 11;
+    --primary: 103 3 63;
+    --primary-foreground: 255 255 255;
+    --secondary: 248 156 29;
     --secondary-foreground: 15 23 42;
-    --accent: 245 158 11;
+    --accent: 248 156 29;
     --accent-foreground: 15 23 42;
     --destructive: 239 68 68;
     --success: 34 197 94;

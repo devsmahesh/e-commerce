@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useGetProfileQuery } from '@/store/api/usersApi'
-import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Image as ImageIcon, LogOut } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Image as ImageIcon, FolderTree, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants'
 import { useLogoutMutation } from '@/store/api/authApi'
@@ -65,6 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { href: ROUTES.ADMIN.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
     { href: ROUTES.ADMIN.PRODUCTS, label: 'Products', icon: Package },
+    { href: ROUTES.ADMIN.CATEGORIES, label: 'Categories', icon: FolderTree },
     { href: ROUTES.ADMIN.ORDERS, label: 'Orders', icon: ShoppingBag },
     { href: ROUTES.ADMIN.USERS, label: 'Users', icon: Users },
     { href: ROUTES.ADMIN.COUPONS, label: 'Coupons', icon: Tag },
@@ -77,7 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-64 bg-slate-900 text-white border-r border-slate-800">
         <div className="sticky top-0 flex h-screen flex-col">
           <div className="p-6">
-            <h2 className="mb-8 text-xl font-bold text-white">Admin Panel</h2>
+            <h2 className="mb-8 text-xl font-bold text-white">Ghee Store Admin</h2>
             <nav className="space-y-1">
               {navItems.map((item) => {
                 const Icon = item.icon

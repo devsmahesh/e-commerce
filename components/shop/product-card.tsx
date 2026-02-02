@@ -26,70 +26,73 @@ export function ProductCard({ product, onAddToCart, onAddToWishlist }: ProductCa
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Card className="group overflow-hidden transition-all hover:shadow-xl">
+      <Card className="group relative overflow-hidden border-2 border-transparent transition-all duration-300 hover:border-accent/20 hover:shadow-2xl">
         <Link href={`/product/${product.slug}`}>
-          <div className="relative aspect-square w-full overflow-hidden bg-muted">
+          <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-muted to-muted/50">
             <Image
               src={product.images[0] || '/placeholder-product.jpg'}
               alt={product.name}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-110"
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
             {discountPercentage > 0 && (
-              <div className="absolute left-2 top-2 rounded-lg bg-destructive px-2 py-1 text-xs font-bold text-destructive-foreground">
+              <div className="absolute left-2 top-2 z-10 rounded-md bg-red-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
                 -{discountPercentage}%
               </div>
             )}
             {product.featured && (
-              <div className="absolute right-2 top-2 rounded-lg bg-accent px-2 py-1 text-xs font-bold text-accent-foreground">
+              <div className="absolute right-2 top-2 z-10 rounded-md bg-orange-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
                 Featured
               </div>
             )}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-2 bottom-2 opacity-0 transition-opacity group-hover:opacity-100"
+              className="absolute right-2 bottom-2 z-10 rounded-full bg-white/90 opacity-0 shadow-md transition-all duration-300 hover:bg-white hover:scale-110 group-hover:opacity-100"
               onClick={(e) => {
                 e.preventDefault()
                 onAddToWishlist?.(product)
               }}
             >
-              <Heart className="h-4 w-4" />
+              <Heart className="h-4 w-4 text-destructive" />
             </Button>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           </div>
         </Link>
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-3">
           <Link href={`/product/${product.slug}`}>
-            <h3 className="mb-2 line-clamp-2 font-semibold transition-colors hover:text-accent">
+            <h3 className="mb-1 line-clamp-2 min-h-[3rem] font-semibold text-foreground transition-colors hover:text-accent">
               {product.name}
             </h3>
           </Link>
-          <div className="mb-2 flex items-center space-x-1">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className={`h-4 w-4 ${
-                  i < Math.floor(product.rating)
-                    ? 'fill-accent text-accent'
-                    : 'text-muted-foreground'
-                }`}
-              />
-            ))}
+          <div className="flex items-center space-x-1">
+            <div className="flex items-center">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star
+                  key={i}
+                  className={`h-3.5 w-3.5 ${
+                    i < Math.floor(product.rating || 0)
+                      ? 'fill-amber-400 text-amber-400'
+                      : 'fill-gray-200 text-gray-200'
+                  }`}
+                />
+              ))}
+            </div>
             <span className="ml-1 text-xs text-muted-foreground">
-              ({product.reviewCount})
+              ({product.reviewCount || 0})
             </span>
           </div>
-          <div className="mb-4 flex items-center space-x-2">
-            <span className="text-lg font-bold">{formatPrice(product.price)}</span>
+          <div className="flex items-baseline space-x-2">
+            <span className="text-xl font-bold text-foreground">{formatPrice(product.price)}</span>
             {product.compareAtPrice && (
-              <span className="text-sm text-muted-foreground line-through">
+              <span className="text-sm font-medium text-muted-foreground line-through">
                 {formatPrice(product.compareAtPrice)}
               </span>
             )}
           </div>
           <Button
-            className="w-full"
+            className="w-full bg-primary text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-lg"
             onClick={() => onAddToCart?.(product)}
             disabled={product.stock === 0}
           >

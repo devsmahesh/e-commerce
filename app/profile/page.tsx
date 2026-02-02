@@ -18,13 +18,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useGetProfileQuery, useUpdateProfileMutation, useGetAddressesQuery, useAddAddressMutation, useUpdateAddressMutation, useDeleteAddressMutation, useUploadAvatarMutation } from '@/store/api/usersApi'
-import { useAppSelector } from '@/store/hooks'
+import { useGetProfileQuery, useUpdateProfileMutation, useGetAddressesQuery, useAddAddressMutation, useUpdateAddressMutation, useDeleteAddressMutation, useUploadAvatarMutation, useGetWishlistQuery, useRemoveFromWishlistMutation } from '@/store/api/usersApi'
+import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, Camera, Edit, Trash2 } from 'lucide-react'
+import { Loader2, Camera, Edit, Trash2, Heart, User as UserIcon, MapPin } from 'lucide-react'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
-import { Address } from '@/types'
+import { Address, Product, User } from '@/types'
+import { ProductCard } from '@/components/shop/product-card'
+import { addItem } from '@/store/slices/cartSlice'
+import Link from 'next/link'
+import { ROUTES } from '@/lib/constants'
 
 const profileSchema = Yup.object().shape({
   firstName: Yup.string().min(1, 'First name is required').required('First name is required'),
@@ -43,9 +47,12 @@ const addressSchema = Yup.object().shape({
 })
 
 export default function ProfilePage() {
+  const dispatch = useAppDispatch()
   const { data: user, isLoading: isLoadingUser, refetch: refetchProfile } = useGetProfileQuery()
   const authUser = useAppSelector((state) => state.auth.user)
   const { data: addressesFromApi } = useGetAddressesQuery()
+  const { data: wishlistItems = [], isLoading: isLoadingWishlist } = useGetWishlistQuery()
+  const [removeFromWishlist] = useRemoveFromWishlistMutation()
   
   // Use API user data if available, otherwise fall back to auth user
   const displayUser = user || authUser
@@ -58,15 +65,16 @@ export default function ProfilePage() {
         _id: addr._id || addr.id, // Preserve _id for API calls
       }))
     }
-    if (user?.addresses && Array.isArray(user.addresses) && user.addresses.length > 0) {
-      return user.addresses.map((addr: any) => ({
+    const userWithAddresses = user as User & { addresses?: Address[] }
+    if (userWithAddresses?.addresses && Array.isArray(userWithAddresses.addresses) && userWithAddresses.addresses.length > 0) {
+      return userWithAddresses.addresses.map((addr: any) => ({
         ...addr,
         id: addr._id || addr.id || '',
         _id: addr._id || addr.id || '', // Preserve _id for API calls
       }))
     }
     return []
-  }, [addressesFromApi, user?.addresses])
+  }, [addressesFromApi, user])
 
   // Refetch profile data when component mounts
   React.useEffect(() => {
@@ -149,7 +157,7 @@ export default function ProfilePage() {
 
   const handleAddressSubmit = async (
     values: { street: string; city: string; state: string; zipCode: string; country: string; label?: string; isDefault?: boolean },
-    { resetForm }: { resetForm: () => void }
+    { resetForm }: { resetForm: (values?: any) => void }
   ) => {
     try {
       if (editingAddressId) {
@@ -326,6 +334,37 @@ export default function ProfilePage() {
     return 'U'
   }
 
+  const handleAddToCart = (product: Product) => {
+    dispatch(
+      addItem({
+        id: `${product.id}-${Date.now()}`,
+        product,
+        quantity: 1,
+        price: product.price,
+      })
+    )
+    toast({
+      title: 'Added to cart',
+      description: `${product.name} has been added to your cart.`,
+    })
+  }
+
+  const handleRemoveFromWishlist = async (product: Product) => {
+    try {
+      await removeFromWishlist(product.id).unwrap()
+      toast({
+        title: 'Removed from wishlist',
+        description: `${product.name} has been removed from your wishlist.`,
+      })
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.data?.message || 'Failed to remove from wishlist.',
+        variant: 'destructive',
+      })
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -334,9 +373,19 @@ export default function ProfilePage() {
           <h1 className="mb-8 text-4xl font-bold">My Profile</h1>
 
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="addresses">Addresses</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="profile" className="flex items-center gap-2">
+                <UserIcon className="h-4 w-4" />
+                <span>Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="addresses" className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span>Addresses</span>
+              </TabsTrigger>
+              <TabsTrigger value="wishlist" className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                <span>Wishlist</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile">
@@ -662,6 +711,46 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
+            </TabsContent>
+
+            <TabsContent value="wishlist">
+              <Card>
+                <CardHeader>
+                  <CardTitle>My Wishlist</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingWishlist ? (
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="aspect-square rounded-2xl" />
+                      ))}
+                    </div>
+                  ) : wishlistItems.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <Heart className="mb-4 h-16 w-16 text-muted-foreground" />
+                      <h2 className="mb-2 text-2xl font-semibold">Your wishlist is empty</h2>
+                      <p className="mb-6 text-muted-foreground">
+                        Start adding items to your wishlist
+                      </p>
+                      <Link href={ROUTES.PRODUCTS}>
+                        <Button>Start Shopping</Button>
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                      {wishlistItems.map((product) => (
+                        <div key={product.id} className="relative">
+                          <ProductCard
+                            product={product}
+                            onAddToCart={handleAddToCart}
+                            onAddToWishlist={() => handleRemoveFromWishlist(product)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>

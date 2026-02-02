@@ -78,8 +78,8 @@ export default function AdminProductsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold">Products</h1>
-          <p className="mt-2 text-muted-foreground">Manage your product catalog</p>
+          <h1 className="text-4xl font-bold">Ghee Products</h1>
+          <p className="mt-2 text-muted-foreground">Manage your ghee product catalog</p>
         </div>
         <Link href="/admin/products/new">
           <Button>
@@ -95,7 +95,7 @@ export default function AdminProductsPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search products..."
+                placeholder="Search ghee products..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"

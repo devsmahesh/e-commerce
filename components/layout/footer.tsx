@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ShoppingCart, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
+import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
 import { ROUTES } from '@/lib/constants'
 
 export function Footer() {
@@ -31,14 +31,15 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="space-y-4">
-            <Link href={ROUTES.HOME} className="flex items-center space-x-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <ShoppingCart className="h-6 w-6" />
-              </div>
-              <span className="text-xl font-bold">E-Commerce</span>
+            <Link href={ROUTES.HOME} className="flex items-center">
+              <img 
+                src="/assests/runiche-logo.png" 
+                alt="Runiche Logo" 
+                className="h-20 w-auto"
+              />
             </Link>
             <p className="text-sm text-muted-foreground">
-              Premium e-commerce platform offering the best products with exceptional service.
+              Premium ghee e-commerce platform offering authentic cow and buffalo ghee with exceptional quality and service.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -109,7 +110,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <p>© {currentYear} E-Commerce Platform. All rights reserved.</p>
+          <p>© {currentYear} Ghee E-commerce Platform. All rights reserved.</p>
         </div>
       </div>
     </footer>

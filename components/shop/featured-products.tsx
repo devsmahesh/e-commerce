@@ -9,7 +9,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 
 export function FeaturedProducts() {
-  const { data: productsResponse, isLoading } = useGetProductsQuery({ isFeatured: true, limit: 8 })
+  const { data: productsResponse, isLoading } = useGetProductsQuery({ 
+    isFeatured: true, 
+    limit: 8,
+    isActive: true // Only show active products
+  })
   const products = productsResponse?.data || []
   const dispatch = useAppDispatch()
   const { toast } = useToast()
@@ -38,12 +42,12 @@ export function FeaturedProducts() {
 
   if (isLoading) {
     return (
-      <section className="py-16 bg-muted/50">
+      <section className="py-12 md:py-16 bg-muted/30">
         <div className="container mx-auto px-4">
-          <h2 className="mb-8 text-3xl font-bold">Featured Products</h2>
+          <h2 className="mb-6 text-2xl font-bold tracking-tight md:mb-8 md:text-3xl">Featured Products</h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-square rounded-2xl" />
+              <Skeleton key={i} className="aspect-square rounded-xl" />
             ))}
           </div>
         </div>
@@ -52,9 +56,9 @@ export function FeaturedProducts() {
   }
 
   return (
-    <section className="py-16 bg-muted/50">
+    <section className="py-12 md:py-16 bg-muted/30">
       <div className="container mx-auto px-4">
-        <h2 className="mb-8 text-3xl font-bold">Featured Products</h2>
+        <h2 className="mb-6 text-2xl font-bold tracking-tight md:mb-8 md:text-3xl">Featured Products</h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {Array.isArray(products) && products.length > 0 ? (
             products.slice(0, 8).map((product) => (

@@ -1,5 +1,7 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
@@ -9,11 +11,21 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ROUTES } from '@/lib/constants'
+import { LoginModal } from '@/components/auth/login-modal'
+import { tokenManager } from '@/lib/token'
 
 export function CartDrawer() {
   const dispatch = useAppDispatch()
+  const router = useRouter()
   const isOpen = useAppSelector((state) => state.cart.isOpen)
   const items = useAppSelector((state) => state.cart.items)
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
+  const [showLoginModal, setShowLoginModal] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const tax = subtotal * 0.1
@@ -30,6 +42,18 @@ export function CartDrawer() {
 
   const handleRemove = (id: string) => {
     dispatch(removeItem(id))
+  }
+
+  const handleProceedToCheckout = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const hasAuth = mounted && (isAuthenticated || tokenManager.getAccessToken())
+    
+    if (!hasAuth) {
+      setShowLoginModal(true)
+    } else {
+      dispatch(closeCart())
+      router.push(ROUTES.CHECKOUT)
+    }
   }
 
   return (
@@ -154,22 +178,31 @@ export function CartDrawer() {
                       <span>{formatPrice(total)}</span>
                     </div>
                   </div>
-                  <Link href={ROUTES.CHECKOUT} onClick={() => dispatch(closeCart())}>
-                    <Button className="w-full" size="lg">
+                  <div className="space-y-3">
+                    <Button 
+                      className="w-full" 
+                      size="lg"
+                      onClick={handleProceedToCheckout}
+                    >
                       Proceed to Checkout
                     </Button>
-                  </Link>
-                  <Link href={ROUTES.CART} onClick={() => dispatch(closeCart())}>
-                    <Button variant="outline" className="w-full">
-                      View Cart
-                    </Button>
-                  </Link>
+                    <Link href={ROUTES.CART} onClick={() => dispatch(closeCart())}>
+                      <Button variant="outline" className="w-full">
+                        View Cart
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
           </motion.div>
         </>
       )}
+      <LoginModal 
+        open={showLoginModal} 
+        onOpenChange={setShowLoginModal}
+        onCancel={() => dispatch(closeCart())}
+      />
     </AnimatePresence>
   )
 }

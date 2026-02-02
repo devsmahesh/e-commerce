@@ -11,8 +11,15 @@ interface ProductsParams {
   minRating?: number
   inStock?: boolean
   isFeatured?: boolean
+  isActive?: boolean
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  // Ghee-specific filters
+  gheeType?: 'cow' | 'buffalo' | 'mixed'
+  minWeight?: number
+  maxWeight?: number
+  minPurity?: number
+  origin?: string
 }
 
 interface CreateProductRequest {
@@ -25,6 +32,15 @@ interface CreateProductRequest {
   tags?: string[]
   isFeatured?: boolean
   isActive?: boolean
+  // Ghee-specific fields
+  gheeType?: 'cow' | 'buffalo' | 'mixed'
+  weight?: number
+  purity?: number
+  origin?: string
+  shelfLife?: string
+  compareAtPrice?: number
+  sku?: string
+  brand?: string
 }
 
 interface UpdateProductRequest extends Partial<CreateProductRequest> {}
@@ -70,10 +86,11 @@ export const productsApi = baseApi.injectEndpoints({
           }
         }
         
-        // Transform products: _id to id, categoryId object to category
+        // Transform products: _id to id, categoryId object to category, isFeatured to featured
         const transformedItems = items.map((item: any) => ({
           ...item,
           id: item._id || item.id,
+          featured: item.isFeatured !== undefined ? item.isFeatured : (item.featured || false), // Map isFeatured to featured
           category: item.categoryId && typeof item.categoryId === 'object' 
             ? {
                 id: item.categoryId._id || item.categoryId.id,
@@ -107,6 +124,7 @@ export const productsApi = baseApi.injectEndpoints({
         return {
           ...productData,
           id: productData._id || productData.id,
+          featured: productData.isFeatured !== undefined ? productData.isFeatured : (productData.featured || false), // Map isFeatured to featured
           category: productData.categoryId && typeof productData.categoryId === 'object' 
             ? {
                 id: productData.categoryId._id || productData.categoryId.id,
@@ -122,6 +140,25 @@ export const productsApi = baseApi.injectEndpoints({
     // Get Product by Slug
     getProductBySlug: builder.query<Product, string>({
       query: (slug) => `/products/slug/${slug}`,
+      transformResponse: (response: any) => {
+        // Handle wrapped response structure: { success, message, data: { ...product } }
+        const productData = response.data || response
+        
+        // Transform _id to id and categoryId object to category, isFeatured to featured
+        return {
+          ...productData,
+          id: productData._id || productData.id,
+          featured: productData.isFeatured !== undefined ? productData.isFeatured : (productData.featured || false), // Map isFeatured to featured
+          images: Array.isArray(productData.images) ? productData.images : (productData.images ? [productData.images] : []),
+          category: productData.categoryId && typeof productData.categoryId === 'object' 
+            ? {
+                id: productData.categoryId._id || productData.categoryId.id,
+                name: productData.categoryId.name,
+                slug: productData.categoryId.slug,
+              }
+            : productData.category || { id: '', name: '', slug: '' },
+        } as Product
+      },
       providesTags: (result, error, slug) => [{ type: 'Product', id: slug }],
     }),
 
@@ -153,6 +190,70 @@ export const productsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Product'],
     }),
+
+    // Upload Product Image (Admin)
+    uploadProductImage: builder.mutation<{ url: string }, FormData>({
+      query: (formData) => ({
+        url: '/products/upload-image',
+        method: 'POST',
+        body: formData,
+      }),
+      transformResponse: (response: any, meta, arg) => {
+        // Log for debugging
+        console.log('Upload response:', response)
+        
+        let urlPath = ''
+        
+        // Handle wrapped response: { success: true, message: "...", data: { url: "..." } }
+        if (response?.success && response?.data?.url) {
+          urlPath = response.data.url
+        }
+        // Handle direct data object: { data: { url } }
+        else if (response?.data?.url) {
+          urlPath = response.data.url
+        }
+        // Handle direct url: { url }
+        else if (response?.url) {
+          urlPath = response.url
+        }
+        // Handle string response
+        else if (typeof response === 'string') {
+          urlPath = response
+        }
+        
+        if (!urlPath) {
+          console.error('Unexpected response structure:', response)
+          return { url: '' }
+        }
+        
+        // Check if it's already a full URL (starts with http:// or https://)
+        // This handles cloud storage URLs (Cloudinary, S3, etc.)
+        if (urlPath.startsWith('http://') || urlPath.startsWith('https://')) {
+          return { url: urlPath }
+        }
+        
+        // Otherwise, it's a relative path - convert to full URL
+        // Backend returns: "uploads/products/image.jpg"
+        // We need to construct: "http://localhost:8000/uploads/products/image.jpg"
+        const cleanPath = urlPath.replace(/^\//, '') // Remove leading slash if present
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+        const baseUrl = apiBaseUrl.replace(/\/api\/v1$/, '')
+        const fullUrl = `${baseUrl}/${cleanPath}`
+        
+        return { url: fullUrl }
+      },
+      transformErrorResponse: (response: any, meta, arg) => {
+        // Log for debugging
+        console.error('Upload error response:', response)
+        
+        // Ensure error response has proper structure
+        const errorData = {
+          message: response?.data?.message || response?.message || 'Failed to upload image',
+          statusCode: response?.status || response?.statusCode || 500,
+        }
+        return errorData
+      },
+    }),
   }),
 })
 
@@ -163,5 +264,6 @@ export const {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useUploadProductImageMutation,
 } = productsApi
 

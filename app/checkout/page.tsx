@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { CartDrawer } from '@/components/shop/cart-drawer'
@@ -11,23 +11,59 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAppSelector } from '@/store/hooks'
 import { formatPrice } from '@/lib/utils'
-import { useGetAddressesQuery, useCreateOrderMutation } from '@/store/api/ordersApi'
+import { useCreateOrderMutation } from '@/store/api/ordersApi'
+import { useGetAddressesQuery, useGetProfileQuery } from '@/store/api/usersApi'
 import { useToast } from '@/hooks/use-toast'
 import { ROUTES } from '@/lib/constants'
 import { Loader2 } from 'lucide-react'
 import { Elements } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { CheckoutForm } from '@/components/checkout/checkout-form'
+import { LoginModal } from '@/components/auth/login-modal'
+import { tokenManager } from '@/lib/token'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '')
 
 export default function CheckoutPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const items = useAppSelector((state) => state.cart.items)
-  const { data: addresses } = useGetAddressesQuery()
+  const authUser = useAppSelector((state) => state.auth.user)
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
+  const { data: addresses } = useGetAddressesQuery(undefined, {
+    skip: !isAuthenticated && !tokenManager.getAccessToken(),
+  })
+  const { data: user, isLoading: isLoadingUser } = useGetProfileQuery(undefined, {
+    skip: !isAuthenticated && !tokenManager.getAccessToken(),
+  })
   const [createOrder, { isLoading }] = useCreateOrderMutation()
   const [selectedAddress, setSelectedAddress] = useState<string>('')
+  const [showLoginModal, setShowLoginModal] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Check if user is authenticated
+  const hasAuth = mounted && (isAuthenticated || tokenManager.getAccessToken())
+  const currentUser = user || authUser
+
+  // Show login modal if not authenticated
+  useEffect(() => {
+    if (mounted && !hasAuth && items.length > 0) {
+      setShowLoginModal(true)
+    }
+  }, [mounted, hasAuth, items.length])
+
+  // Close login modal if user becomes authenticated
+  useEffect(() => {
+    if (mounted && hasAuth && showLoginModal) {
+      setShowLoginModal(false)
+    }
+  }, [mounted, hasAuth, showLoginModal])
+
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const tax = subtotal * 0.1
@@ -57,6 +93,24 @@ export default function CheckoutPage() {
     )
   }
 
+  // Show loading state while checking authentication
+  if (!mounted) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen py-8">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          </div>
+        </main>
+        <Footer />
+        <CartDrawer />
+      </>
+    )
+  }
+
   return (
     <>
       <Navbar />
@@ -72,7 +126,13 @@ export default function CheckoutPage() {
                   <CardTitle>Shipping Address</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {addresses && addresses.length > 0 ? (
+                  {!hasAuth ? (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Please log in to select a shipping address
+                      </p>
+                    </div>
+                  ) : addresses && addresses.length > 0 ? (
                     <div className="space-y-2">
                       {addresses.map((address) => (
                         <label
@@ -92,12 +152,18 @@ export default function CheckoutPage() {
                             className="mt-1"
                           />
                           <div className="flex-1">
-                            <p className="font-semibold">
-                              {address.firstName} {address.lastName}
-                            </p>
+                            {user && (
+                              <p className="font-semibold">
+                                {user.firstName} {user.lastName}
+                              </p>
+                            )}
+                            {address.label && (
+                              <p className="text-xs text-muted-foreground font-medium">
+                                {address.label}
+                              </p>
+                            )}
                             <p className="text-sm text-muted-foreground">
-                              {address.address1}
-                              {address.address2 && `, ${address.address2}`}
+                              {address.street}
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {address.city}, {address.state} {address.zipCode}
@@ -116,26 +182,31 @@ export default function CheckoutPage() {
               </Card>
 
               {/* Payment */}
-              {selectedAddress && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Payment</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
-                      <Elements stripe={stripePromise}>
-                        <CheckoutForm
-                          addressId={selectedAddress}
-                          total={total}
-                          onSuccess={() => {
-                            toast({
-                              title: 'Order placed!',
-                              description: 'Your order has been placed successfully.',
-                            })
-                            router.push(`${ROUTES.ORDERS}?success=true`)
-                          }}
-                        />
-                      </Elements>
+              {selectedAddress && (() => {
+                const selectedAddr = addresses?.find(addr => addr.id === selectedAddress)
+                if (!selectedAddr) return null
+                
+                return (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Payment</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? (
+                        <Elements stripe={stripePromise}>
+                          <CheckoutForm
+                            address={selectedAddr}
+                            total={total}
+                            shippingCost={shipping}
+                            onSuccess={() => {
+                              toast({
+                                title: 'Order placed!',
+                                description: 'Your order has been placed successfully.',
+                              })
+                              router.push(`${ROUTES.ORDERS}?success=true`)
+                            }}
+                          />
+                        </Elements>
                     ) : (
                       <div className="space-y-4">
                         <p className="text-sm text-muted-foreground">
@@ -144,10 +215,24 @@ export default function CheckoutPage() {
                         <Button
                           onClick={async () => {
                             try {
+                              const selectedAddr = addresses?.find(addr => addr.id === selectedAddress)
+                              if (!selectedAddr) {
+                                toast({
+                                  title: 'Error',
+                                  description: 'Please select a shipping address',
+                                  variant: 'destructive',
+                                })
+                                return
+                              }
                               await createOrder({
-                                shippingAddressId: selectedAddress,
-                                billingAddressId: selectedAddress,
-                                paymentMethod: 'cash',
+                                shippingAddress: {
+                                  street: selectedAddr.street,
+                                  city: selectedAddr.city,
+                                  state: selectedAddr.state,
+                                  zipCode: selectedAddr.zipCode,
+                                  country: selectedAddr.country,
+                                },
+                                shippingCost: shipping,
                               }).unwrap()
                               toast({
                                 title: 'Order placed!',
@@ -172,7 +257,8 @@ export default function CheckoutPage() {
                     )}
                   </CardContent>
                 </Card>
-              )}
+                )
+              })()}
             </div>
 
             {/* Order Summary */}
@@ -220,6 +306,14 @@ export default function CheckoutPage() {
       </main>
       <Footer />
       <CartDrawer />
+
+      {/* Login Modal */}
+      <LoginModal 
+        open={showLoginModal} 
+        onOpenChange={setShowLoginModal}
+        onCancel={() => router.push(ROUTES.CART)}
+        cancelLabel="Go to Cart"
+      />
     </>
   )
 }

@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ShoppingCart, Search, User, Menu, X, Moon, Sun } from 'lucide-react'
+import { ShoppingCart, Search, User, Menu, X, Moon, Sun, LogOut, UserCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { toggleCart, openCart } from '@/store/slices/cartSlice'
 import { toggleMobileMenu } from '@/store/slices/uiSlice'
@@ -74,11 +75,12 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex items-center space-x-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <ShoppingCart className="h-6 w-6" />
-            </div>
-            <span className="text-xl font-bold">E-Commerce</span>
+          <Link href={ROUTES.HOME} className="flex items-center">
+            <img 
+              src="/assests/runiche-logo.png" 
+              alt="Runiche Logo" 
+              className="h-20 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -102,7 +104,7 @@ export function Navbar() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search products..."
+                placeholder="Search ghee products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4"
@@ -144,15 +146,32 @@ export function Navbar() {
 
             {/* User Menu */}
             {user ? (
-              <div className="hidden md:flex md:items-center md:space-x-2">
-                <Link href={user.role === 'admin' ? ROUTES.ADMIN.DASHBOARD : ROUTES.PROFILE}>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </Link>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
-                  Logout
-                </Button>
+              <div className="hidden md:flex md:items-center">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="bg-accent">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-56 p-2" align="end">
+                    <div className="space-y-1">
+                      <Link
+                        href={user.role === 'admin' ? ROUTES.ADMIN.DASHBOARD : ROUTES.PROFILE}
+                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+                      >
+                        <UserCircle className="h-4 w-4" />
+                        My Profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer text-left"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             ) : (
               <div className="hidden md:flex md:items-center md:space-x-2">

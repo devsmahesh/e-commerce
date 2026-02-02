@@ -110,6 +110,33 @@ export const usersApi = baseApi.injectEndpoints({
     // Get Wishlist
     getWishlist: builder.query<Product[], void>({
       query: () => '/users/wishlist',
+      transformResponse: (response: any) => {
+        // Handle wrapped response structure: { success, message, data: [...] }
+        if (response.error || (response.success === false)) {
+          throw response
+        }
+        
+        const items = response.data || response
+        
+        // Ensure items is an array
+        if (!Array.isArray(items)) {
+          return []
+        }
+        
+        // Transform products: _id to id, categoryId object to category
+        return items.map((item: any) => ({
+          ...item,
+          id: item._id || item.id,
+          images: Array.isArray(item.images) ? item.images : (item.images ? [item.images] : []),
+          category: item.categoryId && typeof item.categoryId === 'object' 
+            ? {
+                id: item.categoryId._id || item.categoryId.id,
+                name: item.categoryId.name,
+                slug: item.categoryId.slug,
+              }
+            : item.category || { id: '', name: '', slug: '' },
+        })) as Product[]
+      },
       providesTags: ['Wishlist'],
     }),
 
@@ -119,6 +146,21 @@ export const usersApi = baseApi.injectEndpoints({
         url: `/users/wishlist/${productId}`,
         method: 'POST',
       }),
+      transformResponse: (response: any) => {
+        const productData = response.data || response
+        return {
+          ...productData,
+          id: productData._id || productData.id,
+          images: Array.isArray(productData.images) ? productData.images : (productData.images ? [productData.images] : []),
+          category: productData.categoryId && typeof productData.categoryId === 'object' 
+            ? {
+                id: productData.categoryId._id || productData.categoryId.id,
+                name: productData.categoryId.name,
+                slug: productData.categoryId.slug,
+              }
+            : productData.category || { id: '', name: '', slug: '' },
+        } as Product
+      },
       invalidatesTags: ['Wishlist'],
     }),
 
