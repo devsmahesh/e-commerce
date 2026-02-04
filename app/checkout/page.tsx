@@ -167,44 +167,61 @@ export default function CheckoutPage() {
                     </div>
                   ) : addresses && addresses.length > 0 ? (
                     <div className="space-y-2">
-                      {addresses.map((address, index) => (
-                        <label
-                          key={address.id || `address-${index}`}
-                          className={`flex cursor-pointer items-start space-x-3 rounded-lg border-2 p-4 transition-colors ${
-                            selectedAddress === address.id
-                              ? 'border-accent bg-accent/5'
-                              : 'border-border hover:border-accent/50'
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="address"
-                            value={address.id}
-                            checked={selectedAddress === address.id}
-                            onChange={(e) => setSelectedAddress(e.target.value)}
-                            className="mt-1"
-                          />
-                          <div className="flex-1">
-                            {user && (
-                              <p className="font-semibold">
-                                {user.firstName} {user.lastName}
+                      {addresses.map((address, index) => {
+                        const isSelected = selectedAddress === address.id
+                        return (
+                          <label
+                            key={address.id || `address-${index}`}
+                            onClick={() => setSelectedAddress(address.id)}
+                            className={`flex cursor-pointer items-start space-x-3 rounded-lg border-2 p-4 transition-all ${
+                              isSelected
+                                ? 'border-primary bg-primary/5 shadow-sm'
+                                : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                            }`}
+                          >
+                            <div className="flex items-center mt-1">
+                              <div className={`relative flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                                isSelected ? 'border-primary' : 'border-muted-foreground'
+                              }`}>
+                                {isSelected && (
+                                  <div className="h-3 w-3 rounded-full bg-primary" />
+                                )}
+                              </div>
+                            </div>
+                            <input
+                              type="radio"
+                              name="address"
+                              value={address.id}
+                              checked={isSelected}
+                              onChange={(e) => {
+                                e.stopPropagation()
+                                setSelectedAddress(e.target.value)
+                              }}
+                              className="sr-only"
+                              aria-label={`Select address ${address.label || index + 1}`}
+                            />
+                            <div className="flex-1">
+                              {user && (
+                                <p className="font-semibold">
+                                  {user.firstName} {user.lastName}
+                                </p>
+                              )}
+                              {address.label && (
+                                <p className="text-xs text-muted-foreground font-medium">
+                                  {address.label}
+                                </p>
+                              )}
+                              <p className="text-sm text-muted-foreground">
+                                {address.street}
                               </p>
-                            )}
-                            {address.label && (
-                              <p className="text-xs text-muted-foreground font-medium">
-                                {address.label}
+                              <p className="text-sm text-muted-foreground">
+                                {address.city}, {address.state} {address.zipCode}
                               </p>
-                            )}
-                            <p className="text-sm text-muted-foreground">
-                              {address.street}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {address.city}, {address.state} {address.zipCode}
-                            </p>
-                            <p className="text-sm text-muted-foreground">{address.country}</p>
-                          </div>
-                        </label>
-                      ))}
+                              <p className="text-sm text-muted-foreground">{address.country}</p>
+                            </div>
+                          </label>
+                        )
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-8 space-y-4">

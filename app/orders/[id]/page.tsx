@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
@@ -21,7 +22,9 @@ import {
   Ban,
   X,
   XCircle,
-  RefreshCw
+  RefreshCw,
+  Copy,
+  Check
 } from 'lucide-react'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants'
@@ -31,6 +34,7 @@ export default function OrderDetailPage() {
   const params = useParams()
   const router = useRouter()
   const orderIdOrNumber = params?.id as string
+  const [copiedTracking, setCopiedTracking] = useState(false)
   
   // Check if it looks like an order number (starts with "ORD-") or an ID (MongoDB ObjectId or UUID)
   const isOrderNumber = orderIdOrNumber?.startsWith('ORD-')
@@ -66,6 +70,25 @@ export default function OrderDetailPage() {
       toast({
         title: 'Error',
         description: error?.data?.message || 'Failed to cancel order',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleCopyTracking = async () => {
+    if (!order?.trackingNumber) return
+    try {
+      await navigator.clipboard.writeText(order.trackingNumber)
+      setCopiedTracking(true)
+      toast({
+        title: 'Copied!',
+        description: 'Tracking number copied to clipboard',
+      })
+      setTimeout(() => setCopiedTracking(false), 2000)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to copy tracking number',
         variant: 'destructive',
       })
     }
@@ -337,9 +360,23 @@ export default function OrderDetailPage() {
                     <span>Placed: {formatDate(order.createdAt)}</span>
                   </div>
                   {order.trackingNumber && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Truck className="h-4 w-4" />
-                      <span>Tracking: {order.trackingNumber}</span>
+                    <div className="flex items-center gap-2">
+                      <Truck className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Tracking:</span>
+                      <span className="font-medium text-foreground">{order.trackingNumber}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={handleCopyTracking}
+                        title="Copy tracking number"
+                      >
+                        {copiedTracking ? (
+                          <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
                   )}
                   {order.paymentMethod && (

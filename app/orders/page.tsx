@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
 import { CartDrawer } from '@/components/shop/cart-drawer'
@@ -9,13 +10,14 @@ import { useGetOrdersQuery, useCancelOrderMutation } from '@/store/api/ordersApi
 import { formatPrice, formatDate } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-import { Package, X, Calendar, ShoppingBag, CheckCircle2, Clock, Truck, Ban, XCircle, RefreshCw } from 'lucide-react'
+import { Package, X, Calendar, ShoppingBag, CheckCircle2, Clock, Truck, Ban, XCircle, RefreshCw, Copy, Check } from 'lucide-react'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants'
 
 export default function OrdersPage() {
   const { data, isLoading } = useGetOrdersQuery({ page: 1 })
   const [cancelOrder] = useCancelOrderMutation()
+  const [copiedTrackingId, setCopiedTrackingId] = useState<string | null>(null)
   const { toast } = useToast()
 
   const handleCancel = async (orderId: string) => {
@@ -29,6 +31,24 @@ export default function OrdersPage() {
       toast({
         title: 'Error',
         description: error?.data?.message || 'Failed to cancel order',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleCopyTracking = async (trackingNumber: string, orderId: string) => {
+    try {
+      await navigator.clipboard.writeText(trackingNumber)
+      setCopiedTrackingId(orderId)
+      toast({
+        title: 'Copied!',
+        description: 'Tracking number copied to clipboard',
+      })
+      setTimeout(() => setCopiedTrackingId(null), 2000)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to copy tracking number',
         variant: 'destructive',
       })
     }
@@ -173,6 +193,26 @@ export default function OrdersPage() {
                             </p>
                           </div>
                         </div>
+                        {order.trackingNumber && (
+                          <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+                            <Truck className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Tracking:</span>
+                            <span className="text-sm font-medium text-foreground">{order.trackingNumber}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 ml-auto"
+                              onClick={() => handleCopyTracking(order.trackingNumber!, orderId)}
+                              title="Copy tracking number"
+                            >
+                              {copiedTrackingId === orderId ? (
+                                <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </div>
+                        )}
                       </div>
 
                       {/* Action Buttons */}
