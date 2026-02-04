@@ -184,7 +184,7 @@ export default function OrderDetailPage() {
                 <Package className="mb-4 h-16 w-16 text-muted-foreground" />
                 <h2 className="mb-2 text-2xl font-semibold">Order not found</h2>
                 <p className="mb-6 text-muted-foreground">
-                  The order you're looking for doesn't exist or you don't have permission to view it.
+                  The order you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
                 </p>
                 <Link href={ROUTES.ORDERS} className={buttonVariants({ variant: 'outline' })}>
                   <ArrowLeft className="mr-2 h-4 w-4" />

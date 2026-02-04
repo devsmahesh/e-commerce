@@ -67,6 +67,7 @@ export default function EditProductPage() {
   const [uploadProductImage, { isLoading: isUploading }] = useUploadProductImageMutation()
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([])
   const [filePreviews, setFilePreviews] = React.useState<{ file: File; preview: string }[]>([])
+  const [tagInput, setTagInput] = React.useState('')
 
   const getInitialValues = () => {
     if (!product) {
@@ -99,7 +100,7 @@ export default function EditProductPage() {
       stock: String(product.stock || ''),
       categoryId: product.category?.id || (product as any).categoryId?._id || (product as any).categoryId || '',
       images: product.images || [],
-      tags: product.tags || [],
+      tags: (product as any).tags || [],
       isFeatured: product.featured === true || (product as any).isFeatured === true, // Check both featured and isFeatured fields
       isActive: (product as any).isActive !== undefined ? (product as any).isActive : true,
       // Ghee-specific fields
@@ -183,7 +184,7 @@ export default function EditProductPage() {
           
           try {
             const uploadResult = await uploadProductImage(formData).unwrap()
-            return uploadResult.url || uploadResult.data?.url
+            return uploadResult.url || (uploadResult as any).data?.url
           } catch (uploadError: any) {
             console.error('Upload error:', uploadError)
             toast({
@@ -328,8 +329,6 @@ export default function EditProductPage() {
         enableReinitialize
       >
         {({ values, errors, touched, setFieldValue, isSubmitting }) => {
-          const [tagInput, setTagInput] = React.useState('')
-
           const handleRemoveImage = (index: number) => {
             const newImages = values.images.filter((_, i) => i !== index)
             setFieldValue('images', newImages)
@@ -344,7 +343,7 @@ export default function EditProductPage() {
           }
 
           const handleRemoveTag = (index: number) => {
-            const newTags = values.tags.filter((_, i) => i !== index)
+            const newTags = values.tags.filter((_: any, i: number) => i !== index)
             setFieldValue('tags', newTags)
           }
 
@@ -416,7 +415,7 @@ export default function EditProductPage() {
                           </SelectContent>
                         </Select>
                         {errors.categoryId && touched.categoryId && (
-                          <p className="text-sm text-destructive">{errors.categoryId}</p>
+                          <p className="text-sm text-destructive">{String(errors.categoryId)}</p>
                         )}
                       </div>
                     </CardContent>
@@ -705,7 +704,7 @@ export default function EditProductPage() {
 
                       {values.tags.length > 0 && (
                         <div className="flex flex-wrap gap-2">
-                          {values.tags.map((tag, index) => (
+                          {values.tags.map((tag: string, index: number) => (
                             <div
                               key={index}
                               className="flex items-center gap-1 rounded-lg bg-muted px-2 py-1 text-sm"

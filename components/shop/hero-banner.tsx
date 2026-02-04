@@ -131,7 +131,7 @@ export function HeroBanner() {
           >
             <span className="text-white/90">Choose from our selection of </span>
             <span className="text-accent font-medium">premium pure cow and buffalo ghee</span>
-            <span className="text-white/90">, or explore our collection to create the perfect addition to your family's wellness journey.</span>
+            <span className="text-white/90">, or explore our collection to create the perfect addition to your family&apos;s wellness journey.</span>
           </motion.p>
 
           {/* Buttons */}

@@ -103,8 +103,8 @@ export default function NewCategoryPage() {
           // Extract URL from response (transformResponse should handle this, but double-check)
           if (uploadResult?.url) {
             imageUrl = uploadResult.url
-          } else if (uploadResult?.data?.url) {
-            imageUrl = uploadResult.data.url
+          } else if ((uploadResult as any)?.data?.url) {
+            imageUrl = (uploadResult as any).data.url
           } else if (typeof uploadResult === 'string') {
             imageUrl = uploadResult
           } else {

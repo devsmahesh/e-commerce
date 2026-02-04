@@ -119,7 +119,7 @@ export default function EditBannerPage() {
         </div>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-muted-foreground">The banner you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground">The banner you&apos;re looking for doesn&apos;t exist.</p>
           </CardContent>
         </Card>
       </div>

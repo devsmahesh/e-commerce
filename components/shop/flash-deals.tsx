@@ -17,7 +17,7 @@ export function FlashDeals() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold">Flash Deals</h2>
-            <p className="text-muted-foreground">Limited time offers on premium ghee - Don't miss out!</p>
+            <p className="text-muted-foreground">Limited time offers on premium ghee - Don&apos;t miss out!</p>
           </div>
           <div className="flex items-center space-x-2 text-sm">
             <Clock className="h-4 w-4" />
@@ -29,7 +29,7 @@ export function FlashDeals() {
             <div className="space-y-4">
               <h3 className="text-xl font-semibold">Up to 50% Off</h3>
               <p className="text-muted-foreground">
-                Selected ghee products with massive discounts. Shop now before they're gone!
+                Selected ghee products with massive discounts. Shop now before they&apos;re gone!
               </p>
               <Link href={`${ROUTES.PRODUCTS}?sort=discount`}>
                 <Button>Shop Flash Deals</Button>

@@ -49,7 +49,7 @@ export function LoginModal({ open, onOpenChange, onCancel, cancelLabel = 'Cancel
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm text-muted-foreground">
-            After logging in, you'll be redirected back to checkout to complete your order.
+            After logging in, you&apos;ll be redirected back to checkout to complete your order.
           </p>
         </div>
         <DialogFooter className="flex-col sm:flex-row gap-2">

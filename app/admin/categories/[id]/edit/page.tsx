@@ -115,8 +115,8 @@ export default function EditCategoryPage() {
           // Extract URL from response (transformResponse should handle this, but double-check)
           if (uploadResult?.url) {
             imageUrl = uploadResult.url
-          } else if (uploadResult?.data?.url) {
-            imageUrl = uploadResult.data.url
+          } else if ((uploadResult as any)?.data?.url) {
+            imageUrl = (uploadResult as any).data.url
           } else if (typeof uploadResult === 'string') {
             imageUrl = uploadResult
           } else {
@@ -190,7 +190,7 @@ export default function EditCategoryPage() {
         </div>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-muted-foreground">The category you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground">The category you&apos;re looking for doesn&apos;t exist.</p>
           </CardContent>
         </Card>
       </div>

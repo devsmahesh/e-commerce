@@ -127,7 +127,7 @@ export default function EditCouponPage() {
         </div>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-muted-foreground">The coupon you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground">The coupon you&apos;re looking for doesn&apos;t exist.</p>
           </CardContent>
         </Card>
       </div>

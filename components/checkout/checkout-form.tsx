@@ -144,7 +144,7 @@ export function CheckoutForm({ address, total, shippingCost, onSuccess }: Checko
         
         // Handle different response formats
         // Backend might return: { data: {...} } or directly the order object
-        orderResponse = response?.data || response
+        orderResponse = (response as any)?.data || response
         
         console.log('Order creation response:', {
           rawResponse: response,
@@ -178,7 +178,7 @@ export function CheckoutForm({ address, total, shippingCost, onSuccess }: Checko
         
         // Handle different response formats
         // Backend might return: { data: {...} } or directly the order object
-        razorpayOrderResponse = response?.data || response
+        razorpayOrderResponse = (response as any)?.data || response
         
         console.log('Razorpay order creation response:', {
           rawResponse: response,

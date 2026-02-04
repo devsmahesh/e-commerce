@@ -23,7 +23,7 @@ export function FiltersSidebar({
   onGheeTypeChange,
 }: FiltersSidebarProps) {
   const { data: categoriesResponse } = useGetCategoriesQuery({})
-  const categories = Array.isArray(categoriesResponse) ? categoriesResponse : categoriesResponse?.data || []
+  const categories = Array.isArray(categoriesResponse) ? categoriesResponse : (categoriesResponse as any)?.data || []
 
   return (
     <div className="space-y-4">

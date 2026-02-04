@@ -102,7 +102,7 @@ export function VerifyEmailDialog({ open, email, onClose, onVerified }: VerifyEm
               <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
                 <li>Check your email inbox (and spam folder)</li>
                 <li>Click the verification link in the email</li>
-                <li>You'll be automatically redirected to login</li>
+                <li>You&apos;ll be automatically redirected to login</li>
               </ol>
             </div>
           </div>

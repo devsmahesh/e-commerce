@@ -232,7 +232,7 @@ export const adminApi = baseApi.injectEndpoints({
       query: (params) => ({
         url: '/admin/export/orders',
         params,
-        responseHandler: (response) => response.blob(),
+        responseHandler: (response: any) => response.blob(),
       }),
     }),
 
@@ -240,7 +240,7 @@ export const adminApi = baseApi.injectEndpoints({
       query: (params) => ({
         url: '/admin/export/products',
         params,
-        responseHandler: (response) => response.blob(),
+        responseHandler: (response: any) => response.blob(),
       }),
     }),
 

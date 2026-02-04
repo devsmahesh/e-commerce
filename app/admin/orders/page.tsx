@@ -377,7 +377,7 @@ export default function AdminOrdersPage() {
                               <span>Quantity: {item.quantity}</span>
                               <span>Price: {formatPrice(item.price)}</span>
                             </div>
-                            <p className="mt-2 font-semibold">Total: {formatPrice(item.total || (item.price * item.quantity))}</p>
+                            <p className="mt-2 font-semibold">Total: {formatPrice((item as any).total || (item.price * item.quantity))}</p>
                           </div>
                         </div>
                       )

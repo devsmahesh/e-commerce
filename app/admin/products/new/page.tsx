@@ -60,6 +60,7 @@ export default function NewProductPage() {
   const [uploadProductImage, { isLoading: isUploading }] = useUploadProductImageMutation()
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([])
   const [filePreviews, setFilePreviews] = React.useState<{ [key: number]: string }>({})
+  const [tagInput, setTagInput] = React.useState('')
 
   const initialValues = {
     name: '',
@@ -171,7 +172,7 @@ export default function NewProductPage() {
           
           try {
             const uploadResult = await uploadProductImage(formData).unwrap()
-            return uploadResult.url || uploadResult.data?.url
+            return uploadResult.url || (uploadResult as any).data?.url
           } catch (uploadError: any) {
             toast({
               title: 'Upload Error',
@@ -246,8 +247,6 @@ export default function NewProductPage() {
         onSubmit={handleSubmit}
       >
         {({ values, errors, touched, setFieldValue, isSubmitting }) => {
-          const [tagInput, setTagInput] = React.useState('')
-
           const handleRemoveImage = (index: number) => {
             const newImages = values.images.filter((_, i) => i !== index)
             setFieldValue('images', newImages)
