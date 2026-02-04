@@ -8,6 +8,7 @@ import {
   useGetAllOrdersQuery,
   useUpdateOrderStatusMutation,
 } from '@/store/api/ordersApi'
+import { Order } from '@/types'
 import { formatPrice, formatDate } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
@@ -21,7 +22,17 @@ export default function AdminOrdersPage() {
   const [updateStatus] = useUpdateOrderStatusMutation()
   const { toast } = useToast()
 
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
+  const handleStatusChange = async (order: Order, newStatus: string) => {
+    // Handle both 'id' and '_id' (MongoDB) fields
+    const orderId = (order as any).id || (order as any)._id
+    if (!orderId) {
+      toast({
+        title: 'Error',
+        description: 'Order ID not found',
+        variant: 'destructive',
+      })
+      return
+    }
     try {
       await updateStatus({ id: orderId, data: { status: newStatus as any } }).unwrap()
       toast({
@@ -71,9 +82,11 @@ export default function AdminOrdersPage() {
             </div>
           ) : data && data.data.length > 0 ? (
             <div className="space-y-4">
-              {data.data.map((order) => (
+              {data.data.map((order) => {
+                const orderId = (order as any).id || (order as any)._id || order.orderNumber
+                return (
                 <div
-                  key={order.id}
+                  key={orderId}
                   className="rounded-lg border border-border p-4"
                 >
                   <div className="flex items-start justify-between">
@@ -82,7 +95,7 @@ export default function AdminOrdersPage() {
                         <h3 className="font-semibold">Order #{order.orderNumber}</h3>
                         <Select
                           value={order.status}
-                          onValueChange={(value) => handleStatusChange(order.id, value)}
+                          onValueChange={(value) => handleStatusChange(order, value)}
                         >
                           <SelectTrigger className="w-40">
                             <SelectValue />
@@ -108,7 +121,8 @@ export default function AdminOrdersPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="py-12 text-center">

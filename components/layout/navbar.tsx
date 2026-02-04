@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ShoppingCart, Search, User, Menu, X, Moon, Sun, LogOut, UserCircle } from 'lucide-react'
+import { ShoppingCart, Search, User, Menu, X, Moon, Sun, LogOut, UserCircle, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -162,6 +162,13 @@ export function Navbar() {
                         <UserCircle className="h-4 w-4" />
                         My Profile
                       </Link>
+                      <Link
+                        href={ROUTES.ORDERS}
+                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
+                      >
+                        <Package className="h-4 w-4" />
+                        My Orders
+                      </Link>
                       <button
                         onClick={handleLogout}
                         className="flex items-center gap-3 w-full px-3 py-2 text-sm font-medium rounded-md text-destructive hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer text-left"
@@ -224,6 +231,13 @@ export function Navbar() {
                     onClick={() => dispatch(toggleMobileMenu())}
                   >
                     Profile
+                  </Link>
+                  <Link
+                    href={ROUTES.ORDERS}
+                    className="block px-4 py-2 text-sm font-medium rounded-lg hover:bg-muted"
+                    onClick={() => dispatch(toggleMobileMenu())}
+                  >
+                    My Orders
                   </Link>
                   <button
                     onClick={() => {

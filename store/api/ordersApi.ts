@@ -71,6 +71,15 @@ export const ordersApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Order'],
     }),
+
+    // Cancel Order
+    cancelOrder: builder.mutation<Order, string>({
+      query: (id) => ({
+        url: `/orders/${id}/cancel`,
+        method: 'PUT',
+      }),
+      invalidatesTags: ['Order'],
+    }),
   }),
 })
 
@@ -81,5 +90,6 @@ export const {
   useGetOrderQuery,
   useGetOrderByOrderNumberQuery,
   useUpdateOrderStatusMutation,
+  useCancelOrderMutation,
 } = ordersApi
 

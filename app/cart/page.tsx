@@ -65,14 +65,62 @@ export default function CartPage() {
           <h1 className="mb-8 text-4xl font-bold">Shopping Cart</h1>
 
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <ShoppingBag className="mb-4 h-16 w-16 text-muted-foreground" />
-              <h2 className="mb-2 text-2xl font-semibold">Your cart is empty</h2>
-              <p className="mb-6 text-muted-foreground">
-                Start adding items to your cart to continue shopping
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="mb-8 max-w-md">
+                <svg
+                  viewBox="0 0 400 300"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full h-auto"
+                >
+                  {/* Shopping cart illustration */}
+                  <g opacity="0.1">
+                    <rect x="50" y="80" width="300" height="200" rx="20" fill="currentColor" />
+                  </g>
+                  {/* Cart body */}
+                  <path
+                    d="M120 180C120 160 136 144 156 144H244C264 144 280 160 280 180V220C280 240 264 256 244 256H156C136 256 120 240 120 220V180Z"
+                    fill="url(#cartGradient)"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  {/* Cart wheels */}
+                  <circle cx="160" cy="260" r="20" fill="url(#cartGradient)" stroke="currentColor" strokeWidth="2" />
+                  <circle cx="240" cy="260" r="20" fill="url(#cartGradient)" stroke="currentColor" strokeWidth="2" />
+                  {/* Cart handle */}
+                  <path
+                    d="M156 144L140 100C138 94 132 90 126 90H100C94 90 90 94 90 100V110"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  {/* Empty state indicator - sparkles */}
+                  <g opacity="0.6">
+                    <circle cx="200" cy="100" r="3" fill="currentColor">
+                      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="180" cy="120" r="2" fill="currentColor">
+                      <animate attributeName="opacity" values="0.3;1;0.3" dur="2.5s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="220" cy="120" r="2.5" fill="currentColor">
+                      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.8s" repeatCount="indefinite" />
+                    </circle>
+                  </g>
+                  <defs>
+                    <linearGradient id="cartGradient" x1="120" y1="144" x2="280" y2="256" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="rgb(103, 3, 63)" stopOpacity="0.1" />
+                      <stop offset="100%" stopColor="rgb(248, 156, 29)" stopOpacity="0.1" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <h2 className="mb-3 text-3xl font-bold text-foreground">Your cart is empty</h2>
+              <p className="mb-8 text-lg text-muted-foreground max-w-md text-center">
+                Looks like you haven't added anything to your cart yet. Start shopping to fill it up!
               </p>
               <Link href={ROUTES.PRODUCTS}>
-                <Button size="lg">
+                <Button size="lg" className="shadow-lg">
                   Continue Shopping
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

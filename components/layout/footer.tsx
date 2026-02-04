@@ -110,7 +110,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-border pt-8 text-center text-sm text-muted-foreground">
-          <p>© {currentYear} Ghee E-commerce Platform. All rights reserved.</p>
+          <p>© {currentYear} Runiche. All rights reserved.</p>
         </div>
       </div>
     </footer>

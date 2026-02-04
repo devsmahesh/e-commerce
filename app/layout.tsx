@@ -18,14 +18,14 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: 'Ghee E-commerce Platform - Premium Cow & Buffalo Ghee',
+  title: 'Runiche - Premium Cow & Buffalo Ghee',
   description: 'Shop premium cow and buffalo ghee online. Authentic, pure, and traditional ghee products with secure checkout and fast delivery.',
   keywords: ['ghee', 'cow ghee', 'buffalo ghee', 'premium ghee', 'pure ghee', 'traditional ghee', 'online ghee', 'ghee shop'],
-  authors: [{ name: 'Ghee E-commerce Team' }],
+  authors: [{ name: 'Runiche Team' }],
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    siteName: 'Ghee E-commerce Platform',
+    siteName: 'Runiche',
   },
 }
 

@@ -1,4 +1,4 @@
-# Ghee E-commerce Platform
+# Runiche
 
 A full-stack web application that enables customers to browse and purchase premium cow and buffalo ghee products online. It features a secure authentication system, real-time inventory management, Stripe-based payment processing, and an admin dashboard for managing orders, products, and users. The platform is designed for scalability, performance, and secure transactions.
 
@@ -10,7 +10,7 @@ A full-stack web application that enables customers to browse and purchase premi
 - 🔍 **Search** functionality for finding specific ghee products
 - 📱 **Product Details** with image gallery, reviews, ghee specifications, and add to cart
 - 🛒 **Shopping Cart** with quantity management
-- 💳 **Checkout** with Stripe integration for secure payments
+- 💳 **Checkout** with Razorpay integration for secure payments (UPI, Cards, Net Banking)
 - 📦 **Order Management** for customers to track their ghee orders
 - ❤️ **Wishlist** functionality to save favorite ghee products
 - 👤 **User Profile** with address management
@@ -41,7 +41,7 @@ A full-stack web application that enables customers to browse and purchase premi
 - 🌙 **Dark Mode** support
 - ✨ **Smooth Animations** with Framer Motion
 - 🔒 **Secure Authentication** with JWT tokens
-- 💳 **Stripe Integration** for secure payment processing
+- 💳 **Razorpay Integration** for secure payment processing (UPI, Cards, Net Banking)
 - 📊 **Charts & Analytics** with Recharts
 - 🔄 **Real-time Inventory** updates
 
@@ -54,7 +54,7 @@ A full-stack web application that enables customers to browse and purchase premi
 - **State Management:** Redux Toolkit + RTK Query
 - **Forms:** React Hook Form + Zod
 - **Animations:** Framer Motion
-- **Payments:** Stripe Elements
+- **Payments:** Razorpay
 - **Charts:** Recharts
 - **Icons:** Lucide React
 
@@ -82,7 +82,7 @@ npm install
 3. Create a `.env.local` file:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key_here
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_your_razorpay_key_id_here
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
@@ -122,7 +122,7 @@ npm run dev
 ## Environment Variables
 
 - `NEXT_PUBLIC_API_URL` - Backend API URL (default: http://localhost:8000/api/v1)
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe publishable key for payments
+- `NEXT_PUBLIC_RAZORPAY_KEY_ID` - Razorpay Key ID for payments (get from [Razorpay Dashboard](https://dashboard.razorpay.com/app/keys))
 - `NEXT_PUBLIC_SITE_URL` - Site URL for SEO (sitemap, robots.txt)
 
 ## Scripts
@@ -176,11 +176,30 @@ Authentication uses JWT tokens stored in HTTP-only cookies. The app automaticall
 
 ## Payment Processing
 
-The platform uses Stripe for secure payment processing:
+The platform uses Razorpay for secure payment processing:
+- UPI payments
 - Credit/Debit card payments
-- Secure checkout flow
+- Net Banking
+- Secure checkout flow with signature verification
 - Payment status tracking
 - Order confirmation emails
+
+### Razorpay Integration
+
+The Razorpay integration includes:
+- **Reusable Hook**: `useRazorpayPayment` for easy payment handling
+- **Service Layer**: `razorpayService` for direct API access
+- **Utility Functions**: Script loading, checkout initialization, amount conversion
+- **Error Handling**: Comprehensive error handling with user-friendly messages
+
+See `RAZORPAY_INTEGRATION_EXAMPLE.md` for usage examples.
+
+### Testing
+
+Use Razorpay test mode with:
+- **Success Card**: `4111 1111 1111 1111`
+- **Test UPI**: `success@razorpay`
+- **Failure Card**: `4000 0000 0000 0002`
 
 ## Admin Dashboard
 

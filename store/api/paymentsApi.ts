@@ -11,9 +11,63 @@ interface CheckoutSessionResponse {
   url: string
 }
 
+// Razorpay interfaces
+interface CreateRazorpayOrderRequest {
+  amount: number // Amount in paise (e.g., 10000 for ₹100)
+  currency?: string // Default: 'INR'
+  receipt?: string // Receipt ID for your internal reference
+  notes?: Record<string, string> // Optional notes
+}
+
+interface RazorpayOrderResponse {
+  id: string // Razorpay order ID
+  entity: string
+  amount: number
+  amount_paid: number
+  amount_due: number
+  currency: string
+  receipt: string
+  status: string
+  attempts: number
+  notes: Record<string, string>
+  created_at: number
+}
+
+interface VerifyRazorpayPaymentRequest {
+  razorpay_order_id: string
+  razorpay_payment_id: string
+  razorpay_signature: string
+  orderId: string // Your internal order ID
+}
+
+interface VerifyRazorpayPaymentResponse {
+  success: boolean
+  message: string
+  order?: any
+}
+
 export const paymentsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    // Create Checkout Session
+    // Create Razorpay Order
+    createRazorpayOrder: builder.mutation<RazorpayOrderResponse, CreateRazorpayOrderRequest>({
+      query: (data) => ({
+        url: '/payments/razorpay/create-order',
+        method: 'POST',
+        body: data,
+      }),
+    }),
+
+    // Verify Razorpay Payment
+    verifyRazorpayPayment: builder.mutation<VerifyRazorpayPaymentResponse, VerifyRazorpayPaymentRequest>({
+      query: (data) => ({
+        url: '/payments/razorpay/verify',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Order', 'Cart'],
+    }),
+
+    // Create Checkout Session (Stripe - kept for backward compatibility)
     createCheckoutSession: builder.mutation<CheckoutSessionResponse, CreateCheckoutSessionRequest>({
       query: (data) => ({
         url: '/payments/checkout',
@@ -38,6 +92,8 @@ export const paymentsApi = baseApi.injectEndpoints({
 })
 
 export const {
+  useCreateRazorpayOrderMutation,
+  useVerifyRazorpayPaymentMutation,
   useCreateCheckoutSessionMutation,
   useStripeWebhookMutation,
 } = paymentsApi
