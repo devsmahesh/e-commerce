@@ -10,7 +10,7 @@ import { useGetOrdersQuery, useCancelOrderMutation } from '@/store/api/ordersApi
 import { formatPrice, formatDate } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-import { Package, X, Calendar, ShoppingBag, CheckCircle2, Clock, Truck, Ban, XCircle, RefreshCw, Copy, Check } from 'lucide-react'
+import { Package, X, Calendar, ShoppingBag, CheckCircle2, Clock, Truck, Ban, XCircle, RefreshCw, Copy, Check, Info } from 'lucide-react'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants'
 
@@ -194,24 +194,32 @@ export default function OrdersPage() {
                           </div>
                         </div>
                         {order.trackingNumber && (
-                          <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
-                            <Truck className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">Tracking:</span>
-                            <span className="text-sm font-medium text-foreground">{order.trackingNumber}</span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 w-7 p-0 ml-auto"
-                              onClick={() => handleCopyTracking(order.trackingNumber!, orderId)}
-                              title="Copy tracking number"
-                            >
-                              {copiedTrackingId === orderId ? (
-                                <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                              ) : (
-                                <Copy className="h-3.5 w-3.5" />
-                              )}
-                            </Button>
-                          </div>
+                          <>
+                            <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+                              <Truck className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">Tracking:</span>
+                              <span className="text-sm font-medium text-foreground">{order.trackingNumber}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0 ml-auto"
+                                onClick={() => handleCopyTracking(order.trackingNumber!, orderId)}
+                                title="Copy tracking number"
+                              >
+                                {copiedTrackingId === orderId ? (
+                                  <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                                ) : (
+                                  <Copy className="h-3.5 w-3.5" />
+                                )}
+                              </Button>
+                            </div>
+                            <div className="mt-2 flex items-center gap-2 rounded-md bg-blue-500/10 p-2">
+                              <Info className="h-4 w-4 text-blue-700 dark:text-blue-400 flex-shrink-0" />
+                              <span className="text-xs text-blue-900 dark:text-blue-100">
+                                Copy the Tracking ID and track the shipment in the Delhivery App.
+                              </span>
+                            </div>
+                          </>
                         )}
                       </div>
 

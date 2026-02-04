@@ -24,7 +24,8 @@ import {
   XCircle,
   RefreshCw,
   Copy,
-  Check
+  Check,
+  Info
 } from 'lucide-react'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants'
@@ -360,24 +361,32 @@ export default function OrderDetailPage() {
                     <span>Placed: {formatDate(order.createdAt)}</span>
                   </div>
                   {order.trackingNumber && (
-                    <div className="flex items-center gap-2">
-                      <Truck className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Tracking:</span>
-                      <span className="font-medium text-foreground">{order.trackingNumber}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={handleCopyTracking}
-                        title="Copy tracking number"
-                      >
-                        {copiedTracking ? (
-                          <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-2">
+                        <Truck className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Tracking:</span>
+                        <span className="font-medium text-foreground">{order.trackingNumber}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={handleCopyTracking}
+                          title="Copy tracking number"
+                        >
+                          {copiedTracking ? (
+                            <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <div className="mt-2 flex items-center gap-2 rounded-md bg-blue-500/10 p-2">
+                        <Info className="h-4 w-4 text-blue-700 dark:text-blue-400 flex-shrink-0" />
+                        <span className="text-xs text-blue-900 dark:text-blue-100">
+                          Copy the Tracking ID and track the shipment in the Delhivery App.
+                        </span>
+                      </div>
+                    </>
                   )}
                   {order.paymentMethod && (
                     <div className="flex items-center gap-2 text-muted-foreground">

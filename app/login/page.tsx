@@ -16,7 +16,8 @@ import { useAppDispatch } from '@/store/hooks'
 import { setCredentials } from '@/store/slices/authSlice'
 import { useToast } from '@/hooks/use-toast'
 import { ROUTES } from '@/lib/constants'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
 
 const loginSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -30,6 +31,7 @@ export default function LoginPage() {
   const { toast } = useToast()
   const [login, { isLoading }] = useLoginMutation()
   const { refetch: refetchProfile } = useGetProfileQuery(undefined, { skip: true })
+  const [showPassword, setShowPassword] = useState(false)
   
   // Get return URL from query params
   const returnUrl = searchParams.get('returnUrl')
@@ -49,7 +51,7 @@ export default function LoginPage() {
       // Transform user data: map _id to id for consistency
       const user = {
         ...userData,
-        id: userData._id || userData.id,
+        id: (userData as any)._id || userData.id,
       }
       
       // Save tokens in cookies and update auth state
@@ -103,8 +105,10 @@ export default function LoginPage() {
               initialValues={initialValues}
               validationSchema={loginSchema}
               onSubmit={handleSubmit}
+              validateOnBlur
+              validateOnChange
             >
-              {({ isSubmitting }) => (
+              {({ isSubmitting, errors, touched }) => (
                 <Form className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -114,19 +118,35 @@ export default function LoginPage() {
                       name="email"
                       type="email"
                       placeholder="name@example.com"
+                      className={errors.email && touched.email ? 'border-destructive focus-visible:ring-destructive' : ''}
                     />
                     <ErrorMessage name="email" component="p" className="text-sm text-destructive" />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
-                    <Field
-                      as={Input}
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="••••••••"
-                    />
+                    <div className="relative">
+                      <Field
+                        as={Input}
+                        id="password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        className={`pr-10 ${errors.password && touched.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
                     <ErrorMessage name="password" component="p" className="text-sm text-destructive" />
                   </div>
 
