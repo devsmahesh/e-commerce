@@ -194,9 +194,6 @@ export default function NotFound() {
             <p className="mb-2 text-xl text-muted-foreground max-w-md">
               Oops! The page you're looking for doesn't exist.
             </p>
-            <p className="mb-8 text-lg text-muted-foreground max-w-md">
-              It might have been moved, deleted, or you entered the wrong URL.
-            </p>
             
             {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
