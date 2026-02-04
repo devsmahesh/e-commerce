@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ShoppingCart, Search, User, Menu, X, Moon, Sun, LogOut, UserCircle, Package } from 'lucide-react'
+import { ShoppingCart, Search, User, Menu, X, LogOut, UserCircle, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -13,13 +13,11 @@ import { useLogoutMutation } from '@/store/api/authApi'
 import { useGetProfileQuery } from '@/store/api/usersApi'
 import { tokenManager } from '@/lib/token'
 import { ROUTES } from '@/lib/constants'
-import { useTheme } from 'next-themes'
 import { useState, useEffect } from 'react'
 
 export function Navbar() {
   const pathname = usePathname()
   const dispatch = useAppDispatch()
-  const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   
   // Get user from Redux auth state as primary source
@@ -114,21 +112,6 @@ export function Navbar() {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
-            {/* Theme Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            >
-              {!mounted ? (
-                <Moon className="h-5 w-5" />
-              ) : theme === 'dark' ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </Button>
-
             {/* Cart */}
             <Button
               variant="ghost"
