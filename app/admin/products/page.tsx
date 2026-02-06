@@ -76,13 +76,13 @@ export default function AdminProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold">Ghee Products</h1>
-          <p className="mt-2 text-muted-foreground">Manage your ghee product catalog</p>
+          <h1 className="text-2xl sm:text-4xl font-bold">Ghee Products</h1>
+          <p className="mt-2 text-sm sm:text-base text-muted-foreground">Manage your ghee product catalog</p>
         </div>
         <Link href="/admin/products/new">
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>
@@ -119,32 +119,41 @@ export default function AdminProductsPage() {
               {data.data.map((product) => (
                 <div
                   key={product.id}
-                  className="flex items-center gap-4 rounded-lg border border-border p-4"
+                  className="flex items-start sm:items-center gap-3 sm:gap-4 rounded-lg border border-border p-4 bg-white shadow-sm"
                 >
-                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+                  {/* Image */}
+                  <div className="relative h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
                     <Image
                       src={product.images[0] || '/placeholder-product.jpg'}
                       alt={product.name}
                       fill
                       className="object-cover"
-                      sizes="64px"
+                      sizes="(max-width: 640px) 64px, 80px"
                     />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {product.category.name} • {formatPrice(product.price)} • Stock: {product.stock}
+                  
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-base sm:text-lg mb-1">{product.name}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+                      {product.category.name} • {formatPrice(product.price)}
+                    </p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Stock: {product.stock}
                     </p>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  
+                  {/* Icons */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Link href={`/admin/products/${product.id}/edit`}>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" className="h-9 w-9">
                         <Edit className="h-4 w-4" />
                       </Button>
                     </Link>
                     <Button
                       variant="destructive"
                       size="icon"
+                      className="h-9 w-9"
                       onClick={() => handleDeleteClick(product.id, product.name)}
                     >
                       <Trash2 className="h-4 w-4" />
