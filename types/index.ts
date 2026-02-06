@@ -90,6 +90,15 @@ export interface Order {
   paymentMethod?: string
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded'
   trackingNumber?: string
+  // Razorpay payment fields
+  razorpayOrderId?: string
+  razorpayPaymentId?: string
+  // Refund fields
+  refundId?: string
+  refundStatus?: 'processed' | 'pending' | 'failed'
+  refundAmount?: number
+  refundedAt?: string
+  refundError?: string
   createdAt: string
   updatedAt: string
 }

@@ -20,11 +20,12 @@ import {
   useGetAllOrdersQuery,
   useUpdateOrderStatusMutation,
 } from '@/store/api/ordersApi'
+import { useRefundOrderMutation } from '@/store/api/paymentsApi'
 import { Order } from '@/types'
 import { formatPrice, formatDate } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-import { Package, Edit, Copy, Check, Truck, Eye, User, MapPin, CreditCard, Calendar, ShoppingBag, Info } from 'lucide-react'
+import { Package, Edit, Copy, Check, Truck, Eye, User, MapPin, CreditCard, Calendar, ShoppingBag, Info, RefreshCw, XCircle, AlertCircle } from 'lucide-react'
 import Image from 'next/image'
 
 const trackingSchema = Yup.object().shape({
@@ -32,6 +33,13 @@ const trackingSchema = Yup.object().shape({
     .trim()
     .min(1, 'Tracking number is required')
     .required('Tracking number is required'),
+})
+
+const refundSchema = Yup.object().shape({
+  amount: Yup.number()
+    .positive('Amount must be positive')
+    .min(1, 'Amount must be at least ₹1'),
+  reason: Yup.string().trim(),
 })
 
 export default function AdminOrdersPage() {
@@ -46,7 +54,10 @@ export default function AdminOrdersPage() {
     status: status === 'all' ? undefined : status 
   })
   const [updateStatus] = useUpdateOrderStatusMutation()
+  const [refundOrder] = useRefundOrderMutation()
   const { toast } = useToast()
+  const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false)
+  const [refundOrderData, setRefundOrderData] = useState<Order | null>(null)
 
   const handleStatusChange = async (order: Order, newStatus: string) => {
     // Handle both 'id' and '_id' (MongoDB) fields
@@ -138,6 +149,72 @@ export default function AdminOrdersPage() {
     }
   }
 
+  const handleOpenRefundDialog = (order: Order) => {
+    setRefundOrderData(order)
+    setIsRefundDialogOpen(true)
+  }
+
+  const handleProcessRefund = async (values: { amount?: number; reason?: string }) => {
+    if (!refundOrderData) return
+
+    const orderId = (refundOrderData as any).id || (refundOrderData as any)._id
+    if (!orderId) {
+      toast({
+        title: 'Error',
+        description: 'Order ID not found',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    try {
+      await refundOrder({
+        orderId,
+        data: values.amount ? { amount: values.amount, reason: values.reason } : { reason: values.reason },
+      }).unwrap()
+      toast({
+        title: 'Refund processed',
+        description: 'Refund has been processed successfully.',
+      })
+      setIsRefundDialogOpen(false)
+      setRefundOrderData(null)
+    } catch (error: any) {
+      toast({
+        title: 'Refund failed',
+        description: error?.data?.message || 'Failed to process refund',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const getRefundStatusBadge = (order: Order) => {
+    if (order.paymentStatus === 'refunded') {
+      if (order.refundStatus === 'processed') {
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-xs font-semibold text-green-700 dark:text-green-400 border border-green-500/20">
+            <Check className="h-3 w-3" />
+            Refunded
+          </span>
+        )
+      } else if (order.refundStatus === 'failed') {
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-1 text-xs font-semibold text-red-700 dark:text-red-400 border border-red-500/20">
+            <XCircle className="h-3 w-3" />
+            Refund Failed
+          </span>
+        )
+      } else {
+        return (
+          <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2 py-1 text-xs font-semibold text-yellow-700 dark:text-yellow-400 border border-yellow-500/20">
+            <RefreshCw className="h-3 w-3" />
+            Refund Pending
+          </span>
+        )
+      }
+    }
+    return null
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -177,7 +254,19 @@ export default function AdminOrdersPage() {
                 return (
                 <div
                   key={orderId}
-                  className="rounded-lg border border-border p-4"
+                  className={`rounded-lg border border-border p-4 ${
+                    order.status === 'cancelled' 
+                      ? 'bg-red-500/10' 
+                      : order.status === 'pending' 
+                      ? 'bg-gray-500/10'
+                      : order.status === 'processing'
+                      ? 'bg-yellow-500/10'
+                      : order.status === 'delivered'
+                      ? 'bg-green-500/10'
+                      : order.status === 'shipped'
+                      ? 'bg-blue-500/10'
+                      : ''
+                  }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -205,10 +294,17 @@ export default function AdminOrdersPage() {
                       <p className="text-sm text-muted-foreground">
                         Customer: {(order as any).customer?.firstName || (order.shippingAddress as any).firstName || ''} {(order as any).customer?.lastName || (order.shippingAddress as any).lastName || ''}
                       </p>
-                      <div className="mt-2 flex items-center gap-4">
+                      <div className="mt-2 flex items-center gap-4 flex-wrap">
                         <p className="text-lg font-semibold">
                           Total: {formatPrice(order.total)}
                         </p>
+                        {order.paymentStatus === 'paid' && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-xs font-semibold text-green-700 dark:text-green-400 border border-green-500/20">
+                            <CreditCard className="h-3 w-3" />
+                            Paid
+                          </span>
+                        )}
+                        {getRefundStatusBadge(order)}
                         {order.trackingNumber && (
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Truck className="h-4 w-4" />
@@ -234,7 +330,7 @@ export default function AdminOrdersPage() {
                           Copy the Tracking and track the shipment in the Delhivery App.
                         </div>
                       )}
-                      <div className="mt-3 flex gap-2">
+                      <div className="mt-3 flex gap-2 flex-wrap">
                         <Button
                           variant="outline"
                           size="sm"
@@ -251,6 +347,17 @@ export default function AdminOrdersPage() {
                           <Edit className="mr-2 h-4 w-4" />
                           {order.trackingNumber ? 'Edit Tracking' : 'Add Tracking'}
                         </Button>
+                        {order.paymentStatus === 'paid' && order.refundStatus !== 'processed' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenRefundDialog(order)}
+                            className="text-orange-600 hover:text-orange-700 dark:text-orange-400"
+                          >
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Refund
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -438,8 +545,54 @@ export default function AdminOrdersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Payment Status</p>
-                      <p className="font-medium capitalize">{detailOrder.paymentStatus}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium capitalize">{detailOrder.paymentStatus}</p>
+                        {getRefundStatusBadge(detailOrder)}
+                      </div>
                     </div>
+                    {detailOrder.paymentStatus === 'paid' && detailOrder.refundStatus !== 'processed' && (
+                      <div className="pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenRefundDialog(detailOrder)}
+                          className="w-full text-orange-600 hover:text-orange-700 dark:text-orange-400"
+                        >
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Process Refund
+                        </Button>
+                      </div>
+                    )}
+                    {/* Refund Details */}
+                    {detailOrder.refundId && (
+                      <div className="pt-2 border-t border-border space-y-1">
+                        <p className="text-xs text-muted-foreground font-semibold">Refund Details</p>
+                        {detailOrder.refundAmount && (
+                          <p className="text-sm">
+                            <span className="text-muted-foreground">Amount:</span>{' '}
+                            <span className="font-medium">{formatPrice(detailOrder.refundAmount)}</span>
+                          </p>
+                        )}
+                        {detailOrder.refundId && (
+                          <p className="text-xs text-muted-foreground">
+                            Refund ID: {detailOrder.refundId}
+                          </p>
+                        )}
+                        {detailOrder.refundedAt && (
+                          <p className="text-xs text-muted-foreground">
+                            Refunded: {formatDate(detailOrder.refundedAt)}
+                          </p>
+                        )}
+                        {detailOrder.refundError && (
+                          <div className="flex items-start gap-2 mt-2 p-2 rounded-md bg-red-500/10 border border-red-500/20">
+                            <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                            <p className="text-xs text-red-700 dark:text-red-400">
+                              <span className="font-semibold">Error:</span> {detailOrder.refundError}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -573,6 +726,147 @@ export default function AdminOrdersPage() {
                   </Button>
                   <Button type="submit" disabled={isSubmitting}>
                     Save Tracking
+                  </Button>
+                </DialogFooter>
+              </Form>
+            )}
+          </Formik>
+        </DialogContent>
+      </Dialog>
+
+      {/* Refund Dialog */}
+      <Dialog 
+        open={isRefundDialogOpen} 
+        onOpenChange={(open) => {
+          setIsRefundDialogOpen(open)
+          if (!open) {
+            setRefundOrderData(null)
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Process Refund</DialogTitle>
+            <DialogDescription>
+              {refundOrderData && (
+                <>
+                  Process refund for Order #{refundOrderData.orderNumber}
+                  <br />
+                  <span className="font-semibold">Total Amount: {formatPrice(refundOrderData.total)}</span>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <Formik
+            initialValues={{
+              amount: refundOrderData?.total || 0,
+              reason: '',
+            }}
+            validationSchema={refundSchema}
+            onSubmit={handleProcessRefund}
+            enableReinitialize
+            validateOnBlur
+            validateOnChange
+          >
+            {({ isSubmitting, errors, touched, values, setFieldValue }) => (
+              <Form>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="amount">Refund Amount (₹)</Label>
+                    <Field
+                      as={Input}
+                      id="amount"
+                      name="amount"
+                      type="number"
+                      min="1"
+                      max={refundOrderData?.total || 0}
+                      step="0.01"
+                      placeholder="Enter refund amount"
+                      className={errors.amount && touched.amount ? 'border-destructive focus-visible:ring-destructive' : ''}
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFieldValue('amount', refundOrderData?.total || 0)}
+                        className="h-7 text-xs"
+                      >
+                        Full Refund
+                      </Button>
+                      {refundOrderData && values.amount !== refundOrderData.total && (
+                        <span className="text-xs text-muted-foreground">
+                          Partial refund: {formatPrice(values.amount || 0)} of {formatPrice(refundOrderData.total)}
+                        </span>
+                      )}
+                    </div>
+                    <ErrorMessage name="amount" component="p" className="text-sm text-destructive" />
+                    {refundOrderData && values.amount > refundOrderData.total && (
+                      <p className="text-sm text-destructive">
+                        Amount cannot exceed order total ({formatPrice(refundOrderData.total)})
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reason">Reason (Optional)</Label>
+                    <Field
+                      as="textarea"
+                      id="reason"
+                      name="reason"
+                      rows={3}
+                      placeholder="Enter reason for refund"
+                      className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                    <ErrorMessage name="reason" component="p" className="text-sm text-destructive" />
+                  </div>
+                  {refundOrderData && (
+                    <div className="rounded-md bg-blue-500/10 p-3 border border-blue-500/20">
+                      <div className="flex items-start gap-2">
+                        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                        <div className="text-xs text-blue-900 dark:text-blue-100 space-y-1">
+                          <p className="font-semibold">Refund Information:</p>
+                          <ul className="list-disc list-inside space-y-0.5 ml-2">
+                            <li>Refund will be processed via Razorpay</li>
+                            <li>Customer will receive refund in 5-7 business days</li>
+                            <li>Refund ID will be stored for tracking</li>
+                            {values.amount < refundOrderData.total && (
+                              <li className="font-semibold text-orange-600 dark:text-orange-400">
+                                This is a partial refund
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsRefundDialogOpen(false)
+                      setRefundOrderData(null)
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting || (refundOrderData ? values.amount > refundOrderData.total : false)}
+                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Process Refund
+                      </>
+                    )}
                   </Button>
                 </DialogFooter>
               </Form>

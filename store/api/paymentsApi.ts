@@ -46,6 +46,22 @@ interface VerifyRazorpayPaymentResponse {
   order?: any
 }
 
+interface RefundOrderRequest {
+  amount?: number // Optional: partial refund amount in rupees (if not provided, full refund)
+  reason?: string // Optional: reason for refund
+}
+
+interface RefundOrderResponse {
+  success: boolean
+  message: string
+  data: {
+    refundId: string
+    refundAmount: number
+    refundStatus: string
+    order: any
+  }
+}
+
 export const paymentsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Create Razorpay Order
@@ -88,6 +104,16 @@ export const paymentsApi = baseApi.injectEndpoints({
         body: data,
       }),
     }),
+
+    // Refund Order (Admin only)
+    refundOrder: builder.mutation<RefundOrderResponse, { orderId: string; data?: RefundOrderRequest }>({
+      query: ({ orderId, data }) => ({
+        url: `/orders/${orderId}/refund`,
+        method: 'POST',
+        body: data || {},
+      }),
+      invalidatesTags: ['Order', 'Payment'],
+    }),
   }),
 })
 
@@ -96,5 +122,6 @@ export const {
   useVerifyRazorpayPaymentMutation,
   useCreateCheckoutSessionMutation,
   useStripeWebhookMutation,
+  useRefundOrderMutation,
 } = paymentsApi
 
