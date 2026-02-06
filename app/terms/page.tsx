@@ -37,7 +37,7 @@ export default function TermsPage() {
                   <h2 className="text-3xl font-bold mb-4">Introduction</h2>
                   <div className="space-y-4 text-muted-foreground">
                     <p>
-                      Welcome to Runiche ("we," "our," or "us"). These Terms and Conditions ("Terms") govern your 
+                      Welcome to Runiche (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). These Terms and Conditions (&quot;Terms&quot;) govern your 
                       access to and use of our website, products, and services. By accessing or using our website, 
                       you agree to be bound by these Terms.
                     </p>
@@ -320,7 +320,7 @@ export default function TermsPage() {
                   <div className="space-y-4 text-muted-foreground">
                     <p>
                       We reserve the right to modify these Terms at any time. We will notify you of any material changes 
-                      by posting the updated Terms on this page and updating the "Last updated" date.
+                      by posting the updated Terms on this page and updating the &quot;Last updated&quot; date.
                     </p>
                     <p>
                       Your continued use of our services after any changes constitutes your acceptance of the new Terms. 

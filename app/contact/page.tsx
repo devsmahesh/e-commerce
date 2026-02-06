@@ -76,7 +76,7 @@ export default function ContactPage() {
             <div className="max-w-3xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">Get in Touch</h1>
               <p className="text-lg text-muted-foreground">
-                We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+                We&apos;d love to hear from you. Send us a message and we&apos;ll respond as soon as possible.
               </p>
             </div>
           </div>
@@ -163,7 +163,7 @@ export default function ContactPage() {
                     <CardHeader>
                       <CardTitle>Send us a Message</CardTitle>
                       <CardDescription>
-                        Fill out the form below and we'll get back to you within 24 hours
+                        Fill out the form below and we&apos;ll get back to you within 24 hours
                       </CardDescription>
                     </CardHeader>
                     <CardContent>

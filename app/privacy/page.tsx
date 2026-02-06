@@ -37,7 +37,7 @@ export default function PrivacyPage() {
                   <h2 className="text-3xl font-bold mb-4">Introduction</h2>
                   <div className="space-y-4 text-muted-foreground">
                     <p>
-                      At Runiche ("we," "our," or "us"), we are committed to protecting your privacy and ensuring 
+                      At Runiche (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;), we are committed to protecting your privacy and ensuring 
                       the security of your personal information. This Privacy Policy explains how we collect, use, 
                       disclose, and safeguard your information when you visit our website and use our services.
                     </p>
@@ -241,7 +241,7 @@ export default function PrivacyPage() {
               {/* Children's Privacy */}
               <Card>
                 <CardContent className="pt-6">
-                  <h2 className="text-3xl font-bold mb-4">Children's Privacy</h2>
+                  <h2 className="text-3xl font-bold mb-4">Children&apos;s Privacy</h2>
                   <div className="space-y-4 text-muted-foreground">
                     <p>
                       Our services are not intended for individuals under the age of 18. We do not knowingly collect 
@@ -260,7 +260,7 @@ export default function PrivacyPage() {
                     <p>
                       We may update this Privacy Policy from time to time to reflect changes in our practices or 
                       legal requirements. We will notify you of any material changes by posting the new Privacy Policy 
-                      on this page and updating the "Last updated" date.
+                      on this page and updating the &quot;Last updated&quot; date.
                     </p>
                     <p>
                       We encourage you to review this Privacy Policy periodically to stay informed about how we protect 

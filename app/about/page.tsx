@@ -33,7 +33,7 @@ export default function AboutPage() {
                   <p>
                     Runiche was born from a passion for preserving traditional Indian culinary heritage 
                     and bringing authentic, high-quality ghee to modern households. We understand that 
-                    ghee is not just a cooking ingredient—it's a symbol of purity, tradition, and 
+                    ghee is not just a cooking ingredient—it&apos;s a symbol of purity, tradition, and 
                     nutritional excellence.
                   </p>
                   <p>
@@ -312,7 +312,7 @@ export default function AboutPage() {
                     <div>
                       <h3 className="font-semibold text-lg mb-2">Customer First</h3>
                       <p className="text-muted-foreground">
-                        Your satisfaction is our priority. We're committed to providing exceptional service.
+                        Your satisfaction is our priority. We&apos;re committed to providing exceptional service.
                       </p>
                     </div>
                   </div>
@@ -387,11 +387,11 @@ export default function AboutPage() {
                     lasting relationships with our customers.
                   </p>
                   <p>
-                    Whether you're using our ghee for cooking, religious ceremonies, or as a nutritional supplement, 
+                    Whether you&apos;re using our ghee for cooking, religious ceremonies, or as a nutritional supplement, 
                     you can trust Runiche to deliver excellence in every jar.
                   </p>
                   <p className="font-medium text-foreground">
-                    Thank you for choosing Runiche. We're honored to be part of your culinary journey.
+                    Thank you for choosing Runiche. We&apos;re honored to be part of your culinary journey.
                   </p>
                 </div>
               </div>
