@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ShoppingCart, Search, User, Menu, X, LogOut, UserCircle, Package } from 'lucide-react'
+import { ShoppingCart, User, Menu, X, LogOut, UserCircle, Package, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { GlobalSearch } from '@/components/layout/global-search'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { toggleCart, openCart } from '@/store/slices/cartSlice'
 import { toggleMobileMenu } from '@/store/slices/uiSlice'
@@ -36,9 +36,15 @@ export function Navbar() {
   useEffect(() => {
     setMounted(true)
   }, [])
+  
   const cartItemsCount = useAppSelector((state) => state.cart.items.length)
   const mobileMenuOpen = useAppSelector((state) => state.ui.mobileMenuOpen)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+
+  // Close mobile search when route changes
+  useEffect(() => {
+    setMobileSearchOpen(false)
+  }, [pathname])
 
   const handleLogout = async () => {
     try {
@@ -56,12 +62,6 @@ export function Navbar() {
     }
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`
-    }
-  }
 
   const navLinks = [
     { href: ROUTES.HOME, label: 'Home' },
@@ -96,22 +96,24 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="hidden lg:flex lg:flex-1 lg:max-w-md lg:mx-8">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search ghee products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4"
-              />
-            </div>
-          </form>
+          {/* Search Bar - Desktop/Tablet */}
+          <div className="hidden md:flex md:flex-1 md:max-w-md md:mx-8">
+            <GlobalSearch />
+          </div>
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2">
+            {/* Mobile Search Icon */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              className="md:hidden"
+              aria-label="Search"
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+
             {/* Cart */}
             <Button
               variant="ghost"
@@ -188,11 +190,27 @@ export function Navbar() {
           </div>
         </div>
 
+        {/* Mobile Search Bar */}
+        {mobileSearchOpen && (
+          <div 
+            className="border-t border-border px-4 py-3 md:hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GlobalSearch />
+          </div>
+        )}
+
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="border-t border-border py-4 md:hidden">
-            <div className="space-y-2">
-              {navLinks.map((link) => (
+            <div className="space-y-4">
+              {/* Mobile Search in Menu */}
+              <div className="px-4">
+                <GlobalSearch />
+              </div>
+              
+              <div className="space-y-2">
+                {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -250,6 +268,7 @@ export function Navbar() {
                   </Link>
                 </>
               )}
+              </div>
             </div>
           </div>
         )}
