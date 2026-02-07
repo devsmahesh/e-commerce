@@ -13,12 +13,14 @@ import { useLogoutMutation } from '@/store/api/authApi'
 import { useGetProfileQuery } from '@/store/api/usersApi'
 import { tokenManager } from '@/lib/token'
 import { ROUTES } from '@/lib/constants'
+import { getImageUrl, getUserInitials } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 
 export function Navbar() {
   const pathname = usePathname()
   const dispatch = useAppDispatch()
   const [mounted, setMounted] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
   
   // Get user from Redux auth state as primary source
   const authUser = useAppSelector((state) => state.auth.user)
@@ -36,6 +38,11 @@ export function Navbar() {
   useEffect(() => {
     setMounted(true)
   }, [])
+  
+  // Reset avatar error when user changes
+  useEffect(() => {
+    setAvatarError(false)
+  }, [user?.avatar])
   
   const cartItemsCount = useAppSelector((state) => state.cart.items.length)
   const mobileMenuOpen = useAppSelector((state) => state.ui.mobileMenuOpen)
@@ -134,8 +141,19 @@ export function Navbar() {
               <div className="hidden md:flex md:items-center">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="bg-accent">
-                      <User className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" className="bg-accent h-10 w-10 rounded-full p-0 overflow-hidden">
+                      {user.avatar && !avatarError ? (
+                        <img
+                          src={getImageUrl(user.avatar) || ''}
+                          alt={user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : 'User'}
+                          className="w-full h-full object-cover"
+                          onError={() => setAvatarError(true)}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-accent text-accent-foreground text-sm font-semibold">
+                          {getUserInitials(user)}
+                        </div>
+                      )}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-56 p-2" align="end">

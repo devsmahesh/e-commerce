@@ -52,7 +52,7 @@ export default function SearchPage() {
         <div className="container mx-auto px-4">
           <div className="mb-8">
             <h1 className="text-4xl font-bold">
-              Search Ghee Products {query && `for "${query}"`}
+              Search runiche Products {query && `for "${query}"`}
             </h1>
             {data && (
               <p className="mt-2 text-muted-foreground">

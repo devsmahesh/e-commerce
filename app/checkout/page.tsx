@@ -69,25 +69,25 @@ export default function CheckoutPage() {
   // Auto-select default address when addresses are loaded
   useEffect(() => {
     if (addresses && addresses.length > 0) {
-      // If no address is selected, select the default or first one
       if (!selectedAddress) {
+        // Only auto-select if no address is currently selected
         const defaultAddress = addresses.find((addr) => addr.isDefault) || addresses[0]
         if (defaultAddress && defaultAddress.id) {
-          setSelectedAddress(defaultAddress.id)
+          setSelectedAddress(String(defaultAddress.id))
         }
       } else {
         // Verify the selected address still exists in the list
-        const addressExists = addresses.some((addr) => addr.id === selectedAddress)
+        const addressExists = addresses.some((addr) => String(addr.id) === selectedAddress)
         if (!addressExists) {
           // If selected address no longer exists, select default or first one
           const defaultAddress = addresses.find((addr) => addr.isDefault) || addresses[0]
           if (defaultAddress && defaultAddress.id) {
-            setSelectedAddress(defaultAddress.id)
+            setSelectedAddress(String(defaultAddress.id))
           }
         }
       }
     }
-  }, [addresses, selectedAddress])
+  }, [addresses]) // Only depend on addresses to avoid interfering with manual selection
 
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -172,11 +172,24 @@ export default function CheckoutPage() {
                   ) : addresses && addresses.length > 0 ? (
                     <div className="space-y-2">
                       {addresses.map((address, index) => {
-                        const isSelected = selectedAddress === address.id
+                        // Use index as fallback if ID is missing (shouldn't happen, but handle gracefully)
+                        const addressId = address?.id ? String(address.id) : `address-${index}`
+                        // Use strict equality check - must match exactly
+                        const isSelected = selectedAddress === addressId
+                        
+                        const handleSelect = (e: React.MouseEvent | React.ChangeEvent) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          // Only allow selection if address has a valid ID
+                          if (address?.id) {
+                            setSelectedAddress(String(address.id))
+                          }
+                        }
+                        
                         return (
-                          <label
-                            key={address.id || `address-${index}`}
-                            onClick={() => setSelectedAddress(address.id)}
+                          <div
+                            key={address?.id || `address-${index}`}
+                            onClick={handleSelect}
                             className={`flex cursor-pointer items-start space-x-3 rounded-lg border-2 p-4 transition-all ${
                               isSelected
                                 ? 'border-primary bg-primary/5 shadow-sm'
@@ -184,6 +197,16 @@ export default function CheckoutPage() {
                             }`}
                           >
                             <div className="flex items-center mt-1">
+                              <input
+                                type="radio"
+                                name="address"
+                                value={addressId}
+                                checked={isSelected}
+                                onChange={handleSelect}
+                                onClick={handleSelect}
+                                className="sr-only"
+                                aria-label={`Select address ${address?.label || index + 1}`}
+                              />
                               <div className={`relative flex h-5 w-5 items-center justify-center rounded-full border-2 ${
                                 isSelected ? 'border-primary' : 'border-muted-foreground'
                               }`}>
@@ -192,18 +215,6 @@ export default function CheckoutPage() {
                                 )}
                               </div>
                             </div>
-                            <input
-                              type="radio"
-                              name="address"
-                              value={address.id}
-                              checked={isSelected}
-                              onChange={(e) => {
-                                e.stopPropagation()
-                                setSelectedAddress(e.target.value)
-                              }}
-                              className="sr-only"
-                              aria-label={`Select address ${address.label || index + 1}`}
-                            />
                             <div className="flex-1">
                               {user && (
                                 <p className="font-semibold">
@@ -223,7 +234,7 @@ export default function CheckoutPage() {
                               </p>
                               <p className="text-sm text-muted-foreground">{address.country}</p>
                             </div>
-                          </label>
+                          </div>
                         )
                       })}
                     </div>
@@ -248,7 +259,7 @@ export default function CheckoutPage() {
               {hasAuth && addresses && addresses.length > 0 && (() => {
                 // Get the selected address or fallback to first/default
                 let selectedAddr = selectedAddress
-                  ? addresses.find(addr => addr.id === selectedAddress)
+                  ? addresses.find(addr => String(addr.id) === selectedAddress)
                   : null
                 
                 // If no match found or no address selected, use default or first
@@ -256,7 +267,7 @@ export default function CheckoutPage() {
                   selectedAddr = addresses.find((addr) => addr.isDefault) || addresses[0]
                   // Update selectedAddress state if we're using a fallback
                   if (selectedAddr && selectedAddr.id && !selectedAddress) {
-                    setSelectedAddress(selectedAddr.id)
+                    setSelectedAddress(String(selectedAddr.id))
                   }
                 }
                 
@@ -368,7 +379,9 @@ export default function CheckoutPage() {
           // Auto-select the newly added address (last one in the list)
           if (updatedAddresses && updatedAddresses.length > 0) {
             const newAddress = updatedAddresses[updatedAddresses.length - 1]
-            setSelectedAddress(newAddress.id)
+            if (newAddress && newAddress.id) {
+              setSelectedAddress(String(newAddress.id))
+            }
           }
         }}
       />

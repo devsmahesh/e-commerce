@@ -56,7 +56,7 @@ export function FeaturedProducts() {
   }
 
   return (
-    <section className="py-12 md:py-16 bg-muted/30">
+    <section className="pb-8 md:pb-8 bg-muted/30">
       <div className="container mx-auto px-4">
         <h2 className="mb-6 text-2xl font-bold tracking-tight md:mb-8 md:text-3xl">Featured Products</h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

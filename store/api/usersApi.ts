@@ -85,6 +85,15 @@ export const usersApi = baseApi.injectEndpoints({
         method: 'POST',
         body: data,
       }),
+      transformResponse: (response: { success: boolean; message: string; data: any } | any) => {
+        // Handle both wrapped and unwrapped responses
+        const addressData = response.data || response
+        return {
+          ...addressData,
+          id: addressData._id || addressData.id,
+          _id: addressData._id || addressData.id, // Preserve _id for API calls
+        } as Address
+      },
       invalidatesTags: ['Address'],
     }),
 
@@ -95,6 +104,15 @@ export const usersApi = baseApi.injectEndpoints({
         method: 'PUT',
         body: data,
       }),
+      transformResponse: (response: { success: boolean; message: string; data: any } | any) => {
+        // Handle both wrapped and unwrapped responses
+        const addressData = response.data || response
+        return {
+          ...addressData,
+          id: addressData._id || addressData.id,
+          _id: addressData._id || addressData.id, // Preserve _id for API calls
+        } as Address
+      },
       invalidatesTags: ['Address'],
     }),
 

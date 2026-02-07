@@ -113,7 +113,7 @@ export function HeroBanner() {
               <span className="text-white">Create a</span>
               <br />
               <span className="font-normal bg-gradient-to-r from-accent via-yellow-400 to-accent bg-clip-text text-transparent">
-                Ghee Moment
+                Runiche Moment
               </span>
             </h1>
           </motion.div>

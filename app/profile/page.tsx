@@ -29,6 +29,7 @@ import { ProductCard } from '@/components/shop/product-card'
 import { addItem } from '@/store/slices/cartSlice'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants'
+import { getImageUrl, getUserInitials } from '@/lib/utils'
 
 const profileSchema = Yup.object().shape({
   firstName: Yup.string().min(1, 'First name is required').required('First name is required'),
@@ -101,7 +102,9 @@ export default function ProfilePage() {
 
   const getAddressInitialValues = () => {
     if (editingAddressId) {
-      const addressToEdit = addresses.find(addr => addr.id === editingAddressId)
+      const addressToEdit = addresses.find(addr => 
+        addr.id === editingAddressId || (addr as any)._id === editingAddressId
+      )
       if (addressToEdit) {
         return {
           street: addressToEdit.street || '',
@@ -161,8 +164,12 @@ export default function ProfilePage() {
   ) => {
     try {
       if (editingAddressId) {
+        // Find the address to get the _id for the API call
+        const addressToUpdate = addresses.find(addr => addr.id === editingAddressId || (addr as any)._id === editingAddressId)
+        const addressIdForApi = addressToUpdate ? ((addressToUpdate as any)._id || addressToUpdate.id) : editingAddressId
+        
         // Update existing address
-        await updateAddress({ id: editingAddressId, data: values }).unwrap()
+        await updateAddress({ id: addressIdForApi, data: values }).unwrap()
         toast({
           title: 'Address updated',
           description: 'Your address has been updated successfully.',
@@ -197,7 +204,17 @@ export default function ProfilePage() {
   }
 
   const handleEditAddress = (address: Address) => {
-    setEditingAddressId(address.id)
+    // Use id for state management, but we'll get _id when submitting
+    const addressId = address.id || (address as any)._id
+    if (!addressId) {
+      toast({
+        title: 'Error',
+        description: 'Invalid address ID',
+        variant: 'destructive',
+      })
+      return
+    }
+    setEditingAddressId(addressId)
     // Scroll to form
     document.getElementById('address-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -319,19 +336,13 @@ export default function ProfilePage() {
   }
 
   const getAvatarUrl = () => {
-    if (avatarPreview) return avatarPreview
-    if (displayUser?.avatar) return displayUser.avatar
+    if (avatarPreview) return avatarPreview // avatarPreview is a data URL from FileReader
+    if (displayUser?.avatar) return getImageUrl(displayUser.avatar)
     return null
   }
 
   const getInitials = () => {
-    if (displayUser?.firstName && displayUser?.lastName) {
-      return `${displayUser.firstName[0]}${displayUser.lastName[0]}`.toUpperCase()
-    }
-    if (displayUser?.email) {
-      return displayUser.email[0].toUpperCase()
-    }
-    return 'U'
+    return getUserInitials(displayUser)
   }
 
   const handleAddToCart = (product: Product) => {

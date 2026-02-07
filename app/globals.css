@@ -58,6 +58,15 @@
   .glass-dark {
     @apply bg-slate-900/80 backdrop-blur-lg border border-slate-700/20;
   }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
 }
 
 /* Ensure SelectItem Indicator only shows when selected */

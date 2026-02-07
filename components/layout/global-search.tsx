@@ -160,7 +160,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           <Input
             ref={inputRef}
             type="text"
-            placeholder="Search ghee products..."
+            placeholder="Search runiche products..."
             value={searchQuery}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
