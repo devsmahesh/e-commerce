@@ -136,6 +136,24 @@ export interface Banner {
   endDate?: string
 }
 
+export interface FlashDeal {
+  id: string
+  title: string
+  description: string
+  type: 'discount' | 'shipping' | 'new_arrival' | 'custom'
+  discountPercentage?: number
+  minPurchaseAmount?: number
+  link?: string
+  buttonText?: string
+  buttonVariant?: 'default' | 'outline'
+  active: boolean
+  startDate: string
+  endDate: string
+  priority?: number // For ordering deals (higher priority = shown first)
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Review {
   id: string
   productId: string

@@ -50,6 +50,7 @@ export const baseApi = createApi({
     'Payment',
     'Analytics',
     'Contact',
+    'FlashDeal',
   ],
   endpoints: () => ({}),
 })

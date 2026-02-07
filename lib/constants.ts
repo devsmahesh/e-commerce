@@ -15,6 +15,7 @@ export const ROUTES = {
     USERS: '/admin/users',
     COUPONS: '/admin/coupons',
     BANNERS: '/admin/banners',
+    FLASH_DEALS: '/admin/flash-deals',
     CATEGORIES: '/admin/categories',
     CONTACTS: '/admin/contacts',
   },
