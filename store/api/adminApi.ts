@@ -24,7 +24,13 @@ interface UpdateUserRoleRequest {
 }
 
 interface DashboardRevenueParams {
-  period?: string
+  period?: '7d' | '30d' | '90d' | '1y' | 'all'
+  startDate?: string
+  endDate?: string
+}
+
+interface DashboardStatsParams {
+  period?: '7d' | '30d' | '90d' | '1y' | 'all'
 }
 
 interface GetReviewsParams {
@@ -64,9 +70,38 @@ interface ExportProductsParams {
 export const adminApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Get Dashboard Stats
-    getDashboardStats: builder.query<any, void>({
-      query: () => '/admin/dashboard',
-      transformResponse: (response: { success: boolean; message: string; data: { totalRevenue: number; totalOrders: number; totalUsers: number; growthRate: number } }) => {
+    getDashboardStats: builder.query<any, DashboardStatsParams>({
+      query: (params) => ({
+        url: '/admin/dashboard',
+        params,
+      }),
+      transformResponse: (response: { 
+        success: boolean
+        message: string
+        data: { 
+          totalRevenue: number
+          totalOrders: number
+          totalUsers: number
+          growthRate: number
+          revenueChange: number
+          ordersChange: number
+          usersChange: number
+          averageOrderValue: number
+          pendingOrders: number
+          processingOrders: number
+          shippedOrders: number
+          deliveredOrders: number
+          cancelledOrders: number
+          paidOrders: number
+          pendingPayments: number
+          failedPayments: number
+          lowStockProducts: number
+          pendingReviews: number
+          totalProducts: number
+          activeProducts: number
+          totalCategories: number
+        } 
+      }) => {
         return response.data || {}
       },
     }),
@@ -77,6 +112,41 @@ export const adminApi = baseApi.injectEndpoints({
         url: '/admin/dashboard/revenue',
         params,
       }),
+      transformResponse: (response: { 
+        success: boolean
+        message: string
+        data: Array<{
+          date: string
+          revenue: number
+          orders: number
+          formattedDate?: string
+        }>
+      }) => {
+        return response.data || []
+      },
+    }),
+
+    // Get Recent Orders
+    getRecentOrders: builder.query<Order[], { limit?: number }>({
+      query: (params) => ({
+        url: '/admin/dashboard/recent-orders',
+        params,
+      }),
+      transformResponse: (response: { success: boolean; message: string; data: Order[] }) => {
+        return response.data || []
+      },
+      providesTags: ['Order'],
+    }),
+
+    // Get Top Products
+    getTopProducts: builder.query<any[], { limit?: number; period?: string }>({
+      query: (params) => ({
+        url: '/admin/dashboard/top-products',
+        params,
+      }),
+      transformResponse: (response: { success: boolean; message: string; data: any[] }) => {
+        return response.data || []
+      },
     }),
 
     // Get All Users
@@ -372,6 +442,8 @@ export const {
   // Dashboard
   useGetDashboardStatsQuery,
   useGetDashboardRevenueQuery,
+  useGetRecentOrdersQuery,
+  useGetTopProductsQuery,
   
   // Users Management
   useGetUsersQuery,

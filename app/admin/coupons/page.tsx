@@ -78,7 +78,7 @@ export default function AdminCouponsPage() {
                   <div>
                     <h3 className="font-semibold">{coupon.code}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {coupon.type === 'percentage' ? `${coupon.value}%` : `$${coupon.value}`} off
+                      {coupon.type === 'percentage' ? `${coupon.value}%` : `₹${coupon.value}`} off
                       {coupon.expiresAt && ` • Expires: ${formatDate(coupon.expiresAt)}`}
                     </p>
                     <p className="text-sm text-muted-foreground">

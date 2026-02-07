@@ -153,7 +153,7 @@ export default function NewCouponPage() {
                         <SelectValue placeholder="Select discount type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="fixed">Fixed Amount ($)</SelectItem>
+                        <SelectItem value="fixed">Fixed Amount (₹)</SelectItem>
                         <SelectItem value="percentage">Percentage (%)</SelectItem>
                       </SelectContent>
                     </Select>
@@ -164,7 +164,7 @@ export default function NewCouponPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="value">
-                      Discount Value * {values.type === 'percentage' ? '(0-100)' : '($)'}
+                      Discount Value * {values.type === 'percentage' ? '(0-100)' : '(₹)'}
                     </Label>
                     <Field
                       as={Input}
