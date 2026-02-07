@@ -13,9 +13,9 @@ interface CheckoutSessionResponse {
 
 // Razorpay interfaces
 interface CreateRazorpayOrderRequest {
-  amount: number // Amount in paise (e.g., 10000 for ₹100)
-  currency?: string // Default: 'INR'
-  receipt?: string // Receipt ID for your internal reference
+  orderId: string // MongoDB ObjectId - REQUIRED
+  currency?: string // Optional - Default: 'INR'
+  receipt?: string // Optional - Receipt ID for your internal reference
   notes?: Record<string, string> // Optional notes
 }
 
@@ -31,6 +31,8 @@ interface RazorpayOrderResponse {
   attempts: number
   notes: Record<string, string>
   created_at: number
+  key: string // Razorpay key (NEW - use this for checkout)
+  orderId: string // Your internal order ID
 }
 
 interface VerifyRazorpayPaymentRequest {

@@ -70,15 +70,8 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
       return
     }
 
-    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
-    if (!razorpayKey) {
-      toast({
-        title: 'Error',
-        description: 'Razorpay is not configured. Please contact support.',
-        variant: 'destructive',
-      })
-      return
-    }
+    // Note: Razorpay key will come from the API response
+    // We'll check for it after creating the Razorpay order
 
     try {
       setIsRazorpayLoading(true)
@@ -166,15 +159,14 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
         throw error
       }
 
-      // Step 2: Create Razorpay order
+      // Step 2: Create Razorpay order using orderId
       let razorpayOrderResponse: any
       try {
         const response = await createRazorpayOrder({
-          amount: rupeesToPaise(total),
+          orderId: orderResponse.id, // Use order ID from database
           currency: 'INR',
           receipt: orderResponse.orderNumber,
           notes: {
-            orderId: orderResponse.id,
             orderNumber: orderResponse.orderNumber,
           },
         }).unwrap()
@@ -187,6 +179,7 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
           rawResponse: response,
           processedResponse: razorpayOrderResponse,
           hasId: !!razorpayOrderResponse?.id,
+          hasKey: !!razorpayOrderResponse?.key,
         })
       } catch (error: any) {
         console.error('Error creating Razorpay order:', error)
@@ -198,11 +191,17 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
         throw error
       }
 
-      // Validate that we have all required IDs
+      // Validate that we have all required IDs and key
       if (!razorpayOrderResponse?.id) {
         console.error('Razorpay order response missing ID:', razorpayOrderResponse)
         throw new Error(
           `Failed to create Razorpay order: No order ID returned. Response: ${JSON.stringify(razorpayOrderResponse)}`
+        )
+      }
+      if (!razorpayOrderResponse?.key) {
+        console.error('Razorpay order response missing key:', razorpayOrderResponse)
+        throw new Error(
+          `Failed to create Razorpay order: No key returned. Response: ${JSON.stringify(razorpayOrderResponse)}`
         )
       }
       if (!orderResponse?.id) {
@@ -369,8 +368,9 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
       }
 
       // Step 4: Open Razorpay checkout with the handler
+      // Use key from response instead of environment variable
       openRazorpayCheckout({
-        key: razorpayKey,
+        key: razorpayOrderResponse.key, // Use key from API response
         amount: razorpayOrderResponse.amount,
         currency: razorpayOrderResponse.currency,
         name: 'Runiche',

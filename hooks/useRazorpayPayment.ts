@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useCreateRazorpayOrderMutation, useVerifyRazorpayPaymentMutation } from '@/store/api/paymentsApi'
-import { loadRazorpayScript, openRazorpayCheckout, rupeesToPaise, RazorpayResponse } from '@/lib/razorpay'
+import { loadRazorpayScript, openRazorpayCheckout, RazorpayResponse } from '@/lib/razorpay'
 import { useToast } from '@/hooks/use-toast'
 
 interface UseRazorpayPaymentProps {
-  orderId: string // Your internal order ID
+  orderId: string // Your internal order ID (MongoDB ObjectId) - REQUIRED
   orderNumber: string
-  amount: number // Amount in rupees
   userDetails?: {
     name?: string
     email?: string
@@ -21,7 +20,6 @@ interface UseRazorpayPaymentProps {
 export const useRazorpayPayment = ({
   orderId,
   orderNumber,
-  amount,
   userDetails,
   onSuccess,
   onError,
@@ -67,37 +65,38 @@ export const useRazorpayPayment = ({
       return
     }
 
-    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
-    if (!razorpayKey) {
-      const errorMessage = 'Razorpay is not configured. Please contact support.'
-      setError(errorMessage)
-      onError?.(errorMessage)
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      })
-      return
-    }
-
     try {
       setLoading(true)
       setError(null)
 
-      // Step 1: Create Razorpay order on backend
+      // Step 1: Create Razorpay order on backend using orderId
       const razorpayOrder = await createRazorpayOrder({
-        amount: rupeesToPaise(amount), // Convert rupees to paise
+        orderId: orderId, // Use order ID from database
         currency: 'INR',
         receipt: orderNumber,
         notes: {
-          orderId: orderId,
           orderNumber: orderNumber,
         },
       }).unwrap()
 
+      // Validate that we have the key from response
+      if (!razorpayOrder.key) {
+        const errorMessage = 'Razorpay key is missing from response. Please contact support.'
+        setError(errorMessage)
+        onError?.(errorMessage)
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        })
+        setLoading(false)
+        return
+      }
+
       // Step 2: Open Razorpay checkout
+      // Use key from API response instead of environment variable
       openRazorpayCheckout({
-        key: razorpayKey,
+        key: razorpayOrder.key, // Use key from API response
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency || 'INR',
         name: storeName,
