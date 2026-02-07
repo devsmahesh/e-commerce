@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Dialog,
@@ -29,16 +29,7 @@ export function VerifyEmailDialog({ open, email, onClose, onVerified }: VerifyEm
   const [verificationToken, setVerificationToken] = useState<string | null>(null)
   const [isVerified, setIsVerified] = useState(false)
 
-  // Check if verification token is in URL (from email link)
-  useEffect(() => {
-    const token = searchParams.get('token')
-    if (token && open) {
-      setVerificationToken(token)
-      handleVerifyEmail(token)
-    }
-  }, [searchParams, open])
-
-  const handleVerifyEmail = async (token?: string) => {
+  const handleVerifyEmail = useCallback(async (token?: string) => {
     const tokenToUse = token || verificationToken
     if (!tokenToUse) return
 
@@ -69,7 +60,16 @@ export function VerifyEmailDialog({ open, email, onClose, onVerified }: VerifyEm
         variant: 'destructive',
       })
     }
-  }
+  }, [verifyEmail, toast, router, onVerified, onClose, verificationToken])
+
+  // Check if verification token is in URL (from email link)
+  useEffect(() => {
+    const token = searchParams.get('token')
+    if (token && open) {
+      setVerificationToken(token)
+      handleVerifyEmail(token)
+    }
+  }, [searchParams, open, handleVerifyEmail])
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

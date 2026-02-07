@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
@@ -25,18 +25,7 @@ export default function VerifyEmailPage() {
     setMounted(true)
   }, [])
 
-  useEffect(() => {
-    if (!mounted) return
-    const token = params?.token as string
-    if (token) {
-      handleVerifyEmail(token)
-    } else {
-      setStatus('error')
-      setMessage('Invalid verification link. No token provided.')
-    }
-  }, [params, mounted])
-
-  const handleVerifyEmail = async (token: string) => {
+  const handleVerifyEmail = useCallback(async (token: string) => {
     setStatus('verifying')
     try {
       const result = await verifyEmail(token).unwrap()
@@ -65,7 +54,18 @@ export default function VerifyEmailPage() {
         variant: 'destructive',
       })
     }
-  }
+  }, [verifyEmail, toast, router])
+
+  useEffect(() => {
+    if (!mounted) return
+    const token = params?.token as string
+    if (token) {
+      handleVerifyEmail(token)
+    } else {
+      setStatus('error')
+      setMessage('Invalid verification link. No token provided.')
+    }
+  }, [params, mounted, handleVerifyEmail])
 
   return (
     <>
