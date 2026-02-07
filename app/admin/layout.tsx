@@ -32,6 +32,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setMounted(true)
   }, [])
 
+  // Immediate redirect if no token (before even checking user)
+  useEffect(() => {
+    if (mounted && !tokenManager.getAccessToken()) {
+      router.push(ROUTES.HOME)
+    }
+  }, [mounted, router])
+
+  // Redirect if user is not admin
   useEffect(() => {
     if (mounted && !isLoading && (!user || user.role !== 'admin')) {
       router.push(ROUTES.HOME)

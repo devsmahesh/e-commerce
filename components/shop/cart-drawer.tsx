@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react'
+import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { closeCart, removeItem, updateQuantity } from '@/store/slices/cartSlice'
@@ -181,19 +181,22 @@ export function CartDrawer() {
                         <span>{formatPrice(total)}</span>
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <Button 
-                        className="w-full" 
-                        size="lg"
-                        onClick={handleProceedToCheckout}
-                      >
-                        Proceed to Checkout
-                      </Button>
-                      <Link href={ROUTES.CART} onClick={() => dispatch(closeCart())}>
-                        <Button variant="outline" className="w-full">
-                          View Cart
-                        </Button>
-                      </Link>
+                    <div className="space-y-4">
+                      <div className="flex justify-between gap-2">
+                        <Link href={ROUTES.CART} onClick={() => dispatch(closeCart())}>
+                          <Button variant="outline" className="w-full" size="lg">
+                            <ShoppingBag className="mr-2 h-4 w-4" />
+                            <span>View Cart</span>
+                          </Button>
+                        </Link>
+                        <Button 
+                            className="w-full" 
+                            size="lg"
+                            onClick={handleProceedToCheckout}
+                          >
+                            Proceed to Checkout <span className="ml-4"><ArrowRight className="h-4 w-4" /></span>
+                          </Button>
+                      </div>
                     </div>
                   </div>
                 )}
