@@ -84,7 +84,7 @@ export interface Order {
   shipping: number
   discount: number
   total: number
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
   shippingAddress: Address
   billingAddress?: Address
   paymentMethod?: string

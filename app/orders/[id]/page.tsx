@@ -350,6 +350,25 @@ export default function OrderDetailPage() {
                 </CardContent>
               </Card>
 
+              {/* Refund Info for Refunded Orders */}
+              {order.paymentStatus?.toLowerCase() === 'refunded' && (
+                <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-2">
+                      <Info className="h-4 w-4 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">
+                          Refund Information
+                        </p>
+                        <p className="text-xs text-amber-800 dark:text-amber-200">
+                          Your refund will be processed within 3-5 business days. The amount will be credited back to your original payment method.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Order Info */}
               <Card>
                 <CardHeader>
@@ -398,7 +417,12 @@ export default function OrderDetailPage() {
               </Card>
 
               {/* Actions */}
-              {order.status === 'pending' && (
+              {/* Show cancel button for pending/processing orders or when payment is paid (before shipping) */}
+              {((order.status === 'pending' || order.status === 'processing') || 
+                (order.paymentStatus?.toLowerCase() === 'paid' && 
+                 order.status !== 'shipped' && 
+                 order.status !== 'delivered' && 
+                 order.status !== 'cancelled')) && (
                 <Button
                   variant="destructive"
                   onClick={handleCancel}

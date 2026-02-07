@@ -237,6 +237,7 @@ export default function AdminOrdersPage() {
                 <SelectItem value="shipped">Shipped</SelectItem>
                 <SelectItem value="delivered">Delivered</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="refunded">Refunded</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -266,6 +267,8 @@ export default function AdminOrdersPage() {
                       ? 'bg-green-500/10'
                       : order.status === 'shipped'
                       ? 'bg-blue-500/10'
+                      : order.status === 'refunded'
+                      ? 'bg-orange-500/10'
                       : ''
                   }`}
                 >
@@ -287,6 +290,7 @@ export default function AdminOrdersPage() {
                             <SelectItem value="shipped">Shipped</SelectItem>
                             <SelectItem value="delivered">Delivered</SelectItem>
                             <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="refunded">Refunded</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
