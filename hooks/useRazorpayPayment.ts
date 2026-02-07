@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useCreateRazorpayOrderMutation, useVerifyRazorpayPaymentMutation } from '@/store/api/paymentsApi'
+import { useClearCartMutation } from '@/store/api/cartApi'
+import { useAppDispatch } from '@/store/hooks'
+import { clearCart as clearCartAction } from '@/store/slices/cartSlice'
 import { loadRazorpayScript, openRazorpayCheckout, RazorpayResponse } from '@/lib/razorpay'
 import { useToast } from '@/hooks/use-toast'
 
@@ -27,11 +30,13 @@ export const useRazorpayPayment = ({
   description,
 }: UseRazorpayPaymentProps) => {
   const { toast } = useToast()
+  const dispatch = useAppDispatch()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [razorpayLoaded, setRazorpayLoaded] = useState(false)
   const [createRazorpayOrder] = useCreateRazorpayOrderMutation()
   const [verifyPayment] = useVerifyRazorpayPaymentMutation()
+  const [clearCart] = useClearCartMutation()
 
   // Load Razorpay script on mount
   useEffect(() => {
@@ -145,6 +150,18 @@ export const useRazorpayPayment = ({
             }).unwrap()
 
             if (verificationResult.success) {
+              // Step 4: Clear cart after successful payment
+              try {
+                // Clear backend cart
+                await clearCart().unwrap()
+                // Clear Redux cart
+                dispatch(clearCartAction())
+              } catch (cartError) {
+                console.error('Error clearing cart:', cartError)
+                // Don't fail the payment flow if cart clearing fails
+                // The cart will be invalidated by the payment API anyway
+              }
+
               toast({
                 title: 'Payment successful!',
                 description: 'Your order has been placed successfully.',

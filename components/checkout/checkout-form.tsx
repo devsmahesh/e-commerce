@@ -4,12 +4,13 @@ import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useCreateOrderMutation } from '@/store/api/ordersApi'
 import { useCreateRazorpayOrderMutation, useVerifyRazorpayPaymentMutation } from '@/store/api/paymentsApi'
-import { useAddToCartMutation, useUpdateCartItemMutation, useGetCartQuery } from '@/store/api/cartApi'
+import { useAddToCartMutation, useUpdateCartItemMutation, useGetCartQuery, useClearCartMutation } from '@/store/api/cartApi'
 import { useToast } from '@/hooks/use-toast'
 import { Loader2, CreditCard, Smartphone, Building2 } from 'lucide-react'
 import { Address } from '@/types'
 import { loadRazorpayScript, openRazorpayCheckout, rupeesToPaise, RazorpayResponse } from '@/lib/razorpay'
-import { useAppSelector } from '@/store/hooks'
+import { useAppSelector, useAppDispatch } from '@/store/hooks'
+import { clearCart as clearCartAction } from '@/store/slices/cartSlice'
 import { formatPrice } from '@/lib/utils'
 import { Coupon } from '@/types'
 
@@ -23,11 +24,13 @@ interface CheckoutFormProps {
 
 export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }: CheckoutFormProps) {
   const { toast } = useToast()
+  const dispatch = useAppDispatch()
   const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation()
   const [createRazorpayOrder, { isLoading: isCreatingRazorpayOrder }] = useCreateRazorpayOrderMutation()
   const [verifyPayment, { isLoading: isVerifying }] = useVerifyRazorpayPaymentMutation()
   const [addToCart] = useAddToCartMutation()
   const [updateCartItem] = useUpdateCartItemMutation()
+  const [clearCart] = useClearCartMutation()
   const { data: backendCart, refetch: refetchCart } = useGetCartQuery(undefined, { skip: false })
   const [isRazorpayLoading, setIsRazorpayLoading] = useState(false)
   const [razorpayLoaded, setRazorpayLoaded] = useState(false)
@@ -337,6 +340,18 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
             razorpay_signature: razorpaySignature,
             orderId: finalOrderId,
           }).unwrap()
+
+          // Step 5: Clear cart after successful payment
+          try {
+            // Clear backend cart
+            await clearCart().unwrap()
+            // Clear Redux cart
+            dispatch(clearCartAction())
+          } catch (cartError) {
+            console.error('Error clearing cart:', cartError)
+            // Don't fail the payment flow if cart clearing fails
+            // The cart will be invalidated by the payment API anyway
+          }
 
           toast({
             title: 'Payment successful!',

@@ -227,11 +227,12 @@ export default function AdminOrdersPage() {
           <div className="flex items-center space-x-4">
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder="All Orders" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Orders</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
                 <SelectItem value="processing">Processing</SelectItem>
                 <SelectItem value="shipped">Shipped</SelectItem>
                 <SelectItem value="delivered">Delivered</SelectItem>
@@ -277,9 +278,10 @@ export default function AdminOrdersPage() {
                           onValueChange={(value) => handleStatusChange(order, value)}
                         >
                           <SelectTrigger className="w-40">
-                            <SelectValue />
+                            <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="paid">Paid</SelectItem>
                             <SelectItem value="pending">Pending</SelectItem>
                             <SelectItem value="processing">Processing</SelectItem>
                             <SelectItem value="shipped">Shipped</SelectItem>
