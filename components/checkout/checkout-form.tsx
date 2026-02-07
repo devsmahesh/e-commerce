@@ -11,15 +11,17 @@ import { Address } from '@/types'
 import { loadRazorpayScript, openRazorpayCheckout, rupeesToPaise, RazorpayResponse } from '@/lib/razorpay'
 import { useAppSelector } from '@/store/hooks'
 import { formatPrice } from '@/lib/utils'
+import { Coupon } from '@/types'
 
 interface CheckoutFormProps {
   address: Address
   total: number
   shippingCost: number
+  coupon?: Coupon | null
   onSuccess: () => void
 }
 
-export function CheckoutForm({ address, total, shippingCost, onSuccess }: CheckoutFormProps) {
+export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }: CheckoutFormProps) {
   const { toast } = useToast()
   const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation()
   const [createRazorpayOrder, { isLoading: isCreatingRazorpayOrder }] = useCreateRazorpayOrderMutation()
@@ -140,6 +142,7 @@ export function CheckoutForm({ address, total, shippingCost, onSuccess }: Checko
             country: address.country,
           },
           shippingCost,
+          couponId: coupon?.id,
         }).unwrap()
         
         // Handle different response formats

@@ -21,6 +21,8 @@ import { AddressForm } from '@/components/checkout/address-form'
 import { LoginModal } from '@/components/auth/login-modal'
 import { tokenManager } from '@/lib/token'
 import { Plus } from 'lucide-react'
+import { CouponInput, getDiscountAmount, calculateTotalWithCoupon } from '@/components/shop/coupon-input'
+import { Coupon } from '@/types'
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -40,6 +42,7 @@ export default function CheckoutPage() {
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -90,7 +93,8 @@ export default function CheckoutPage() {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const tax = subtotal * 0.1
   const shipping = subtotal > 100 ? 0 : 10
-  const total = subtotal + tax + shipping
+  const discount = appliedCoupon ? getDiscountAmount(appliedCoupon, subtotal) : 0
+  const total = calculateTotalWithCoupon(subtotal, tax, shipping, appliedCoupon)
 
   if (items.length === 0) {
     return (
@@ -271,6 +275,7 @@ export default function CheckoutPage() {
                         address={selectedAddr}
                         total={total}
                         shippingCost={shipping}
+                        coupon={appliedCoupon}
                         onSuccess={() => {
                           toast({
                             title: 'Order placed!',
@@ -292,6 +297,13 @@ export default function CheckoutPage() {
                   <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {/* Coupon Input */}
+                  <CouponInput
+                    onApply={setAppliedCoupon}
+                    appliedCoupon={appliedCoupon}
+                    subtotal={subtotal}
+                  />
+                  
                   <div className="space-y-2">
                     {items.map((item) => (
                       <div key={item.id} className="flex justify-between text-sm">
@@ -307,6 +319,12 @@ export default function CheckoutPage() {
                       <span className="text-muted-foreground">Subtotal</span>
                       <span>{formatPrice(subtotal)}</span>
                     </div>
+                    {discount > 0 && (
+                      <div className="flex justify-between text-success">
+                        <span>Discount ({appliedCoupon?.code})</span>
+                        <span>-{formatPrice(discount)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Tax</span>
                       <span>{formatPrice(tax)}</span>

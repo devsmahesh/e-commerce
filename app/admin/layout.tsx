@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useGetProfileQuery } from '@/store/api/usersApi'
-import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Image as ImageIcon, FolderTree, LogOut, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingBag, Users, Tag, Image as ImageIcon, FolderTree, LogOut, Menu, X, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants'
 import { useLogoutMutation } from '@/store/api/authApi'
@@ -89,6 +89,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: ROUTES.ADMIN.USERS, label: 'Users', icon: Users },
     { href: ROUTES.ADMIN.COUPONS, label: 'Coupons', icon: Tag },
     { href: ROUTES.ADMIN.BANNERS, label: 'Banners', icon: ImageIcon },
+    { href: ROUTES.ADMIN.CONTACTS, label: 'Contacts', icon: MessageSquare },
   ]
 
   return (

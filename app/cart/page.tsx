@@ -17,6 +17,8 @@ import Link from 'next/link'
 import { ROUTES } from '@/lib/constants'
 import { LoginModal } from '@/components/auth/login-modal'
 import { tokenManager } from '@/lib/token'
+import { CouponInput, getDiscountAmount, calculateTotalWithCoupon } from '@/components/shop/coupon-input'
+import { Coupon } from '@/types'
 
 export default function CartPage() {
   const dispatch = useAppDispatch()
@@ -25,6 +27,7 @@ export default function CartPage() {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -33,7 +36,8 @@ export default function CartPage() {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const tax = subtotal * 0.1
   const shipping = subtotal > 100 ? 0 : 10
-  const total = subtotal + tax + shipping
+  const discount = appliedCoupon ? getDiscountAmount(appliedCoupon, subtotal) : 0
+  const total = calculateTotalWithCoupon(subtotal, tax, shipping, appliedCoupon)
 
   const handleQuantityChange = (id: string, delta: number) => {
     const item = items.find((item) => item.id === id)
@@ -216,11 +220,24 @@ export default function CartPage() {
                     <CardTitle>Order Summary</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Coupon Input */}
+                    <CouponInput
+                      onApply={setAppliedCoupon}
+                      appliedCoupon={appliedCoupon}
+                      subtotal={subtotal}
+                    />
+                    
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
                         <span>{formatPrice(subtotal)}</span>
                       </div>
+                      {discount > 0 && (
+                        <div className="flex justify-between text-success">
+                          <span>Discount ({appliedCoupon?.code})</span>
+                          <span>-{formatPrice(discount)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Tax</span>
                         <span>{formatPrice(tax)}</span>

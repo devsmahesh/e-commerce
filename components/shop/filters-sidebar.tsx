@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useGetCategoriesQuery } from '@/store/api/categoriesApi'
+import { SidebarBanner } from './sidebar-banner'
 
 interface FiltersSidebarProps {
   category: string
@@ -26,8 +27,14 @@ export function FiltersSidebar({
   const categories = Array.isArray(categoriesResponse) ? categoriesResponse : (categoriesResponse as any)?.data || []
 
   return (
-    <div className="space-y-4">
-      <Card>
+    <div className="flex flex-col gap-6">
+      {/* Sidebar Banner - Show first on mobile (order-1), after filters on desktop (order-2) */}
+      <div className="order-1 lg:order-2">
+        <SidebarBanner />
+      </div>
+      
+      {/* Filters Card - Show after banner on mobile (order-2), first on desktop (order-1) */}
+      <Card className="order-2 lg:order-1">
         <CardHeader>
           <CardTitle>Filters</CardTitle>
         </CardHeader>

@@ -46,6 +46,7 @@ export default function NewCouponPage() {
     maxDiscount: '',
     expiresAt: '',
     usageLimit: '',
+    active: true,
   }
 
   const handleSubmit = async (values: typeof initialValues) => {
@@ -71,6 +72,7 @@ export default function NewCouponPage() {
         maxDiscount: values.maxDiscount ? parseFloat(values.maxDiscount as string) : undefined,
         expiresAt: convertToISO(values.expiresAt),
         usageLimit: values.usageLimit ? parseInt(values.usageLimit as string) : undefined,
+        active: values.active,
       }).unwrap()
 
       toast({
@@ -246,6 +248,23 @@ export default function NewCouponPage() {
                   <p className="text-xs text-muted-foreground">
                     Leave empty for no expiration date
                   </p>
+
+                  <div className="space-y-2 pt-2">
+                    <div className="flex items-center space-x-2">
+                      <Field
+                        type="checkbox"
+                        id="active"
+                        name="active"
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <Label htmlFor="active" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Active
+                      </Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Active coupons can be used by customers. Inactive coupons cannot be applied.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </div>

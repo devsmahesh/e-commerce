@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
@@ -10,14 +10,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
-import { useCreateBannerMutation } from '@/store/api/adminApi'
+import { useCreateBannerMutation, useUploadBannerImageMutation } from '@/store/api/adminApi'
 import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Upload, X } from 'lucide-react'
 import Link from 'next/link'
 
 const bannerSchema = Yup.object().shape({
   title: Yup.string().required('Title is required'),
-  image: Yup.string().url('Must be a valid URL').required('Image URL is required'),
+  image: Yup.string().required('Image is required'),
   link: Yup.string().url('Must be a valid URL'),
   position: Yup.string().oneOf(['hero', 'sidebar', 'footer'], 'Invalid position').required('Position is required'),
   active: Yup.boolean(),
@@ -29,6 +29,9 @@ export default function NewBannerPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [createBanner, { isLoading }] = useCreateBannerMutation()
+  const [uploadBannerImage] = useUploadBannerImageMutation()
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   const initialValues = {
     title: '',
@@ -40,8 +43,50 @@ export default function NewBannerPage() {
     endDate: '',
   }
 
-  const handleSubmit = async (values: typeof initialValues) => {
+
+  const handleSubmit = async (values: typeof initialValues, formikHelpers: any) => {
     try {
+      let imageUrl = values.image
+
+      // If file is selected, upload it first
+      if (selectedFile) {
+        const formData = new FormData()
+        formData.append('image', selectedFile)
+        
+        try {
+          const uploadResult = await uploadBannerImage(formData).unwrap()
+          
+          // Extract URL from response
+          if (uploadResult?.url) {
+            imageUrl = uploadResult.url
+          } else if ((uploadResult as any)?.data?.url) {
+            imageUrl = (uploadResult as any).data.url
+          } else if (typeof uploadResult === 'string') {
+            imageUrl = uploadResult
+          } else {
+            console.error('Unexpected upload response format:', uploadResult)
+            throw new Error('No URL returned from upload')
+          }
+          
+          if (!imageUrl) {
+            throw new Error('No URL returned from upload')
+          }
+          
+          // Update the form field value with the uploaded URL
+          if (formikHelpers?.setFieldValue) {
+            formikHelpers.setFieldValue('image', imageUrl)
+          }
+        } catch (uploadError: any) {
+          console.error('Upload error:', uploadError)
+          toast({
+            title: 'Upload Error',
+            description: uploadError?.data?.message || uploadError?.message || 'Failed to upload image',
+            variant: 'destructive',
+          })
+          return
+        }
+      }
+
       // Convert datetime-local format to ISO string
       const convertToISO = (dateString: string) => {
         if (!dateString) return undefined
@@ -56,7 +101,7 @@ export default function NewBannerPage() {
 
       await createBanner({
         title: values.title,
-        image: values.image,
+        image: imageUrl,
         link: values.link || undefined,
         position: values.position as 'hero' | 'sidebar' | 'footer',
         active: values.active,
@@ -97,52 +142,125 @@ export default function NewBannerPage() {
         validationSchema={bannerSchema}
         onSubmit={handleSubmit}
       >
-        {({ values, errors, touched, setFieldValue, isSubmitting }) => (
-          <Form>
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card className="bg-white border border-gray-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-slate-900">Banner Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Title *</Label>
-                    <Field
-                      as={Input}
-                      id="title"
-                      name="title"
-                      placeholder="Banner title"
-                    />
-                    <ErrorMessage name="title" component="p" className="text-sm text-destructive" />
-                  </div>
+        {({ values, errors, touched, setFieldValue, isSubmitting }) => {
+          // Update handleFileChange to use setFieldValue from Formik
+          const handleFileChangeWithFormik = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0]
+            if (!file) return
 
-                  <div className="space-y-2">
-                    <Label htmlFor="image">Image URL *</Label>
-                    <Field
-                      as={Input}
-                      id="image"
-                      name="image"
-                      type="url"
-                      placeholder="https://example.com/banner.jpg"
-                    />
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+              toast({
+                title: 'Invalid file type',
+                description: 'Please select an image file.',
+                variant: 'destructive',
+              })
+              return
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+              toast({
+                title: 'File too large',
+                description: 'Image must be less than 5MB.',
+                variant: 'destructive',
+              })
+              return
+            }
+
+            setSelectedFile(file)
+            // Set a placeholder value so validation passes
+            setFieldValue('image', 'file-selected', false)
+
+            // Create preview
+            const reader = new FileReader()
+            reader.onloadend = () => {
+              setImagePreview(reader.result as string)
+            }
+            reader.readAsDataURL(file)
+          }
+
+          const handleRemoveFileWithFormik = () => {
+            setSelectedFile(null)
+            setImagePreview(null)
+            setFieldValue('image', '', false)
+          }
+
+          return (
+            <Form>
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card className="bg-white border border-gray-200 shadow-sm">
+                  <CardHeader>
+                    <CardTitle className="text-slate-900">Banner Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Title *</Label>
+                      <Field
+                        as={Input}
+                        id="title"
+                        name="title"
+                        placeholder="Banner title"
+                      />
+                      <ErrorMessage name="title" component="p" className="text-sm text-destructive" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="imageFile">Image *</Label>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="file"
+                            id="imageFile"
+                            accept="image/*"
+                            onChange={handleFileChangeWithFormik}
+                            className="hidden"
+                          />
+                        <label
+                          htmlFor="imageFile"
+                          className="flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors"
+                        >
+                          <Upload className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            {selectedFile ? selectedFile.name : 'Choose image file'}
+                          </span>
+                        </label>
+                        {selectedFile && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleRemoveFileWithFormik}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      {imagePreview && (
+                        <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-muted">
+                          <img
+                            src={imagePreview}
+                            alt="Banner preview"
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      )}
+                      {values.image && !imagePreview && (
+                        <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-muted">
+                          <img
+                            src={values.image}
+                            alt="Banner preview"
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <Field type="hidden" name="image" />
                     <ErrorMessage name="image" component="p" className="text-sm text-destructive" />
                   </div>
-
-                  {values.image && (
-                    <div className="space-y-2">
-                      <Label>Preview</Label>
-                      <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border bg-muted">
-                        <img
-                          src={values.image}
-                          alt="Banner preview"
-                          className="h-full w-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="link">Link URL (Optional)</Label>
@@ -231,7 +349,8 @@ export default function NewBannerPage() {
               </Button>
             </div>
           </Form>
-        )}
+          )
+        }}
       </Formik>
     </div>
   )

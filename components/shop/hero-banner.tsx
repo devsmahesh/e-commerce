@@ -4,10 +4,29 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ROUTES } from '@/lib/constants'
 import { motion } from 'framer-motion'
+import { useGetPublicBannersQuery } from '@/store/api/bannersApi'
+import { HeroBannerCarousel } from './hero-banner-carousel'
 
 export function HeroBanner() {
-  return (
-    <section className="relative min-h-[600px] lg:min-h-[700px] overflow-hidden bg-gradient-to-b from-slate-900 via-slate-800 to-teal-900/30">
+  const { data: banners, isLoading } = useGetPublicBannersQuery({
+    position: 'hero',
+    active: true,
+  })
+
+  // Filter banners by date range
+  const now = new Date()
+  const activeBanners = banners?.filter((banner) => {
+    if (!banner.active) return false
+    if (banner.startDate && now < new Date(banner.startDate)) return false
+    if (banner.endDate && now > new Date(banner.endDate)) return false
+    return true
+  }) || []
+
+  const hasBanners = !isLoading && activeBanners.length > 0
+
+  // Static Hero Background Component
+  const staticHeroBackground = (
+    <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-teal-900/30 z-0">
       {/* Background Images - Blended */}
       <div className="absolute inset-0">
         {/* Cow Ghee Image - Left side with fade to right */}
@@ -22,18 +41,6 @@ export function HeroBanner() {
             WebkitMaskImage: 'linear-gradient(to right, black 0%, black 60%, transparent 100%)',
           }}
         />
-        {/* Buffalo Ghee Image - Right side with fade to left */}
-        {/* <div 
-          className="absolute inset-0 right-0 opacity-40"
-          style={{
-            backgroundImage: "url('/assests/buffalo-ghee.png')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            maskImage: 'linear-gradient(to left, black 0%, black 60%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to left, black 0%, black 60%, transparent 100%)',
-          }}
-        /> */}
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-800/70 to-teal-900/50" />
         {/* Dramatic lighting effect */}
@@ -44,9 +51,12 @@ export function HeroBanner() {
           }}
         />
       </div>
+    </div>
+  )
 
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 py-20 lg:py-32">
+  // Hero Content Component
+  const heroContent = (
+    <div className="relative z-10 container mx-auto px-4 py-20 lg:py-32">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           {/* Top Banner Text */}
           <motion.div
@@ -161,7 +171,28 @@ export function HeroBanner() {
           </motion.div>
         </div>
       </div>
+  )
+
+  return (
+    <section className={`relative overflow-hidden ${hasBanners ? 'min-h-[700px] lg:min-h-[800px]' : 'min-h-[600px] lg:min-h-[700px]'}`}>
+      {hasBanners ? (
+        // Show carousel with static hero as first slide
+        <HeroBannerCarousel 
+          banners={activeBanners} 
+          staticHeroSlide={
+            <div className="relative w-full h-full">
+              {staticHeroBackground}
+              {heroContent}
+            </div>
+          }
+        />
+      ) : (
+        // Show static hero only (no carousel)
+        <>
+          {staticHeroBackground}
+          {heroContent}
+        </>
+      )}
     </section>
   )
 }
-

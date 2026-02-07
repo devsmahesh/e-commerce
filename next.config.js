@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost', 'via.placeholder.com', 'fastly.picsum.photos', 'runiche-production-9dd6.up.railway.app'],
+    domains: ['localhost', 'via.placeholder.com', 'fastly.picsum.photos', 'runiche-production-9dd6.up.railway.app', 'res.cloudinary.com'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -18,6 +18,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'runiche-production-9dd6.up.railway.app',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
       },
     ],
   },

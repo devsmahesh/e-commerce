@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
 import { ROUTES } from '@/lib/constants'
+import { FooterBanner } from '@/components/shop/footer-banner'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -27,6 +28,7 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border bg-background">
+      <FooterBanner />
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}

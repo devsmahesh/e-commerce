@@ -122,6 +122,7 @@ export interface Coupon {
   usageLimit?: number
   usedCount: number
   active: boolean
+  isExpired?: boolean
 }
 
 export interface Banner {

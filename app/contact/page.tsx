@@ -12,6 +12,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { useSubmitContactMutation } from '@/store/api/contactApi'
 
 const contactSchema = Yup.object().shape({
   name: Yup.string()
@@ -33,36 +34,35 @@ const contactSchema = Yup.object().shape({
 
 export default function ContactPage() {
   const { toast } = useToast()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitContact, { isLoading: isSubmitting }] = useSubmitContactMutation()
 
-  const handleSubmit = async (values: {
-    name: string
-    email: string
-    phone: string
-    subject: string
-    message: string
-  }) => {
-    setIsSubmitting(true)
-    
-    // Simulate API call - Replace with actual API endpoint
+  const handleSubmit = async (
+    values: {
+      name: string
+      email: string
+      phone: string
+      subject: string
+      message: string
+    },
+    { resetForm }: { resetForm: () => void }
+  ) => {
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await submitContact(values).unwrap()
       
       toast({
         title: 'Message sent!',
         description: 'Thank you for contacting us. We will get back to you soon.',
       })
       
-      // Reset form would be handled by Formik
-    } catch (error) {
+      // Reset form after successful submission
+      resetForm()
+    } catch (error: any) {
+      const errorMessage = error?.data?.message || error?.message || 'Failed to send message. Please try again later.'
       toast({
         title: 'Error',
-        description: 'Failed to send message. Please try again later.',
+        description: errorMessage,
         variant: 'destructive',
       })
-    } finally {
-      setIsSubmitting(false)
     }
   }
 

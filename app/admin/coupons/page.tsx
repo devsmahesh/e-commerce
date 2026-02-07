@@ -88,12 +88,14 @@ export default function AdminCouponsPage() {
                   <div className="flex items-center space-x-2">
                     <span
                       className={`rounded-lg px-2 py-1 text-xs font-semibold ${
-                        coupon.active
+                        coupon.isExpired
+                          ? 'bg-destructive/10 text-destructive'
+                          : coupon.active
                           ? 'bg-success/10 text-success'
                           : 'bg-muted text-muted-foreground'
                       }`}
                     >
-                      {coupon.active ? 'Active' : 'Inactive'}
+                      {coupon.isExpired ? 'Expired' : coupon.active ? 'Active' : 'Inactive'}
                     </span>
                     <Link href={`/admin/coupons/${coupon.id}/edit`}>
                       <Button variant="outline" size="icon">
