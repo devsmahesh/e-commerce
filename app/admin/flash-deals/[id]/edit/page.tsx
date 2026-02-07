@@ -187,7 +187,7 @@ export default function EditFlashDealPage() {
         </div>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-muted-foreground">The flash deal you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground">The flash deal you&apos;re looking for doesn&apos;t exist.</p>
             <Link href="/admin/flash-deals">
               <Button className="mt-4">Back to Flash Deals</Button>
             </Link>
