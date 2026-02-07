@@ -123,10 +123,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <div className="sticky top-0 flex h-screen flex-col">
           {/* Header with toggle button */}
-          <div className={`p-6 ${sidebarOpen ? '' : 'px-3'}`}>
-            <div className="flex items-center justify-between mb-8">
+          <div className={`p-4 ${sidebarOpen ? '' : 'px-3'}`}>
+            <div className="flex items-center justify-between mb-2">
               {sidebarOpen && (
-                <h2 className="text-xl font-bold text-white whitespace-nowrap">Ghee Store Admin</h2>
+                <div className="flex items-center">
+                  <img 
+                    src="/assests/runiche-logo.png" 
+                    alt="Runiche Logo" 
+                    className="h-36 w-auto"
+                  />
+                </div>
               )}
               <div className="flex items-center gap-2">
                 {/* Desktop collapse button */}
@@ -203,7 +209,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Mobile menu button */}
         <div className="sticky top-0 z-30 bg-white border-b border-gray-200 md:hidden">
           <div className="flex items-center justify-between p-4">
-            <h1 className="text-lg font-semibold text-slate-900">Ghee Store Admin</h1>
+            <div className="flex items-center gap-3">
+              <img 
+                src="/assests/runiche-logo.png" 
+                alt="Runiche Logo" 
+                className="h-12 w-auto"
+              />
+              <h1 className="text-lg font-semibold text-slate-900">Ghee Store Admin</h1>
+            </div>
             <Button
               variant="ghost"
               size="icon"
