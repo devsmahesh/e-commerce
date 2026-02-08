@@ -3,6 +3,7 @@ import { Inter, Poppins } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
 import { Toaster } from '@/components/ui/toaster'
+import { WhatsAppButton } from '@/components/layout/whatsapp-button'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -43,6 +44,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <Toaster />
+          <WhatsAppButton />
         </Providers>
       </body>
     </html>
