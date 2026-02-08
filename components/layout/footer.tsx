@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react'
+import { Instagram } from 'lucide-react'
 import { ROUTES } from '@/lib/constants'
 import { FooterBanner } from '@/components/shop/footer-banner'
 
@@ -38,17 +38,13 @@ export function Footer() {
               Premium ghee e-commerce platform offering authentic cow and buffalo ghee with exceptional quality and service.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                <Facebook className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+              <a 
+                href="https://www.instagram.com/runiche46?igsh=MWFwN3J5dGNiOTJ1Zg==" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 <Instagram className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                <Linkedin className="h-5 w-5" />
               </a>
             </div>
           </div>

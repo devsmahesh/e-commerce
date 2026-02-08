@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   description: 'Shop premium cow and buffalo ghee online. Authentic, pure, and traditional ghee products with secure checkout and fast delivery.',
   keywords: ['ghee', 'cow ghee', 'buffalo ghee', 'premium ghee', 'pure ghee', 'traditional ghee', 'online ghee', 'ghee shop'],
   authors: [{ name: 'Runiche Team' }],
+  icons: {
+    icon: '/assests/favicon.ico',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',

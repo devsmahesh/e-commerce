@@ -53,17 +53,17 @@ export default function AboutPage() {
               {/* Gallery Section 1 - Our Products */}
               <div className="space-y-6">
                 <h2 className="text-3xl font-bold text-center">Our Products</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
+                <div className="flex flex-col md:flex-row justify-center items-center gap-8">
                   {/* Polaroid 1 - Cow Ghee */}
                   <div className="group relative">
-                    <div className="bg-white dark:bg-gray-800 p-4 shadow-lg transform transition-all duration-300 hover:scale-105 hover:rotate-1 -rotate-1">
-                      <div className="bg-white dark:bg-gray-700 p-2 shadow-inner">
-                        <div className="relative w-full aspect-square overflow-hidden">
+                    <div className="bg-white dark:bg-gray-800 p-6 shadow-lg transform transition-all duration-300 hover:scale-105 hover:rotate-1 -rotate-1">
+                      <div className="bg-white dark:bg-gray-700 p-3 shadow-inner">
+                        <div className="relative w-64 h-80 overflow-hidden">
                           <Image
                             src="/assests/cow-ghee.png"
                             alt="Premium Cow Ghee"
                             fill
-                            className="object-contain"
+                            className="object-contain scale-110"
                             unoptimized
                           />
                         </div>
@@ -77,14 +77,14 @@ export default function AboutPage() {
 
                   {/* Polaroid 2 - Buffalo Ghee */}
                   <div className="group relative">
-                    <div className="bg-white dark:bg-gray-800 p-4 shadow-lg transform transition-all duration-300 hover:scale-105 hover:-rotate-1 rotate-1">
-                      <div className="bg-white dark:bg-gray-700 p-2 shadow-inner">
-                        <div className="relative w-full aspect-square overflow-hidden">
+                    <div className="bg-white dark:bg-gray-800 p-6 shadow-lg transform transition-all duration-300 hover:scale-105 hover:-rotate-1 rotate-1">
+                      <div className="bg-white dark:bg-gray-700 p-3 shadow-inner">
+                        <div className="relative w-64 h-80 overflow-hidden">
                           <Image
                             src="/assests/buffalo-ghee.png"
                             alt="Premium Buffalo Ghee"
                             fill
-                            className="object-contain"
+                            className="object-contain scale-110"
                             unoptimized
                           />
                         </div>
@@ -95,35 +95,13 @@ export default function AboutPage() {
                       </div>
                     </div>
                   </div>
-
-                  {/* Polaroid 3 - Logo */}
-                  <div className="group relative">
-                    <div className="bg-white dark:bg-gray-800 p-4 shadow-lg transform transition-all duration-300 hover:scale-105 rotate-1">
-                      <div className="bg-white dark:bg-gray-700 p-2 shadow-inner">
-                        <div className="relative w-full aspect-square overflow-hidden">
-                          <Image
-                            src="/assests/runiche-logo.png"
-                            alt="Runiche Logo"
-                            fill
-                            className="object-contain"
-                            unoptimized
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-4 text-center">
-                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Runiche</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Trusted Quality</p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
 
               {/* Gallery Section 2 - Behind the Scenes */}
-              <div className="space-y-6">
+              {/* <div className="space-y-6">
                 <h2 className="text-3xl font-bold text-center">Behind the Scenes</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
-                  {/* Polaroid 1 - Cow Ghee */}
                   <div className="group relative">
                     <div className="bg-white dark:bg-gray-800 p-4 shadow-lg transform transition-all duration-300 hover:scale-105 hover:-rotate-2 rotate-2">
                       <div className="bg-white dark:bg-gray-700 p-2 shadow-inner">
@@ -144,7 +122,6 @@ export default function AboutPage() {
                     </div>
                   </div>
 
-                  {/* Polaroid 2 - Logo */}
                   <div className="group relative">
                     <div className="bg-white dark:bg-gray-800 p-4 shadow-lg transform transition-all duration-300 hover:scale-105 -rotate-1">
                       <div className="bg-white dark:bg-gray-700 p-2 shadow-inner">
@@ -165,7 +142,6 @@ export default function AboutPage() {
                     </div>
                   </div>
 
-                  {/* Polaroid 3 - Buffalo Ghee */}
                   <div className="group relative">
                     <div className="bg-white dark:bg-gray-800 p-4 shadow-lg transform transition-all duration-300 hover:scale-105 hover:rotate-2 rotate-1">
                       <div className="bg-white dark:bg-gray-700 p-2 shadow-inner">
@@ -186,72 +162,77 @@ export default function AboutPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Gallery Section 3 - Our Heritage */}
               <div className="space-y-6">
                 <h2 className="text-3xl font-bold text-center">Our Heritage</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center">
-                  {/* Polaroid 1 - Logo */}
-                  <div className="group relative">
-                    <div className="bg-white dark:bg-gray-800 p-4 shadow-lg transform transition-all duration-300 hover:scale-105 rotate-2">
-                      <div className="bg-white dark:bg-gray-700 p-2 shadow-inner">
-                        <div className="relative w-full aspect-square overflow-hidden">
-                          <Image
-                            src="/assests/runiche-logo.png"
-                            alt="Heritage"
-                            fill
-                            className="object-contain"
-                            unoptimized
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-4 text-center">
-                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Heritage</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Generations of tradition</p>
-                      </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 justify-items-center">
+                  {/* Image 1 */}
+                  <div className="space-y-4">
+                    <div className="relative w-56 h-80 overflow-hidden rounded-lg">
+                      <Image
+                        src="/assests/about-us-1.jpeg"
+                        alt="Our Heritage"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Heritage</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Generations of tradition</p>
                     </div>
                   </div>
 
-                  {/* Polaroid 2 - Cow Ghee */}
-                  <div className="group relative">
-                    <div className="bg-white dark:bg-gray-800 p-4 shadow-lg transform transition-all duration-300 hover:scale-105 hover:-rotate-1 -rotate-2">
-                      <div className="bg-white dark:bg-gray-700 p-2 shadow-inner">
-                        <div className="relative w-full aspect-square overflow-hidden">
-                          <Image
-                            src="/assests/cow-ghee.png"
-                            alt="Authentic Taste"
-                            fill
-                            className="object-contain"
-                            unoptimized
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-4 text-center">
-                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Authentic Taste</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Original flavors</p>
-                      </div>
+                  {/* Image 2 */}
+                  <div className="space-y-4">
+                    <div className="relative w-56 h-80 overflow-hidden rounded-lg">
+                      <Image
+                        src="/assests/about-us-2.jpeg"
+                        alt="Our Heritage"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Authentic Taste</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Original flavors</p>
                     </div>
                   </div>
 
-                  {/* Polaroid 3 - Buffalo Ghee */}
-                  <div className="group relative">
-                    <div className="bg-white dark:bg-gray-800 p-4 shadow-lg transform transition-all duration-300 hover:scale-105 hover:rotate-1">
-                      <div className="bg-white dark:bg-gray-700 p-2 shadow-inner">
-                        <div className="relative w-full aspect-square overflow-hidden">
-                          <Image
-                            src="/assests/buffalo-ghee.png"
-                            alt="Premium Quality"
-                            fill
-                            className="object-contain"
-                            unoptimized
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-4 text-center">
-                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Premium Quality</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Finest ingredients</p>
-                      </div>
+                  {/* Image 3 */}
+                  <div className="space-y-4">
+                    <div className="relative w-56 h-80 overflow-hidden rounded-lg">
+                      <Image
+                        src="/assests/about-us-3.jpeg"
+                        alt="Our Heritage"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Premium Quality</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Finest ingredients</p>
+                    </div>
+                  </div>
+
+                  {/* Image 4 */}
+                  <div className="space-y-4">
+                    <div className="relative w-56 h-80 overflow-hidden rounded-lg">
+                      <Image
+                        src="/assests/about-us-4.jpeg"
+                        alt="Our Heritage"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Our Heritage</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Timeless tradition</p>
                     </div>
                   </div>
                 </div>
