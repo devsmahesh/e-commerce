@@ -155,6 +155,9 @@ export default function CartPage() {
                               >
                                 {item.product.name}
                               </Link>
+                              {item.variantName && (
+                                <p className="text-xs text-muted-foreground">Variant: {item.variantName}</p>
+                              )}
                               <p className="text-sm text-muted-foreground">
                                 {formatPrice(item.price)} each
                               </p>

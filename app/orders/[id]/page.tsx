@@ -271,6 +271,9 @@ export default function OrderDetailPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-foreground">{productName}</h3>
+                          {item.variantName && (
+                            <p className="text-xs text-muted-foreground">Variant: {item.variantName}</p>
+                          )}
                           <p className="text-sm text-muted-foreground">
                             Quantity: {item.quantity}
                           </p>

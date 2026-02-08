@@ -22,6 +22,34 @@ interface ProductsParams {
   origin?: string
 }
 
+interface ProductVariantRequest {
+  name: string
+  price: number
+  compareAtPrice?: number
+  stock: number
+  sku?: string
+  tags?: string[]
+  isDefault?: boolean
+}
+
+interface ProductDetailsRequest {
+  whyChooseUs?: {
+    title?: string
+    content: string
+    enabled: boolean
+  }
+  keyBenefits?: {
+    title?: string
+    content: string
+    enabled: boolean
+  }
+  refundPolicy?: {
+    title?: string
+    content: string
+    enabled: boolean
+  }
+}
+
 interface CreateProductRequest {
   name: string
   description: string
@@ -41,6 +69,9 @@ interface CreateProductRequest {
   compareAtPrice?: number
   sku?: string
   brand?: string
+  // Variants and details
+  variants?: ProductVariantRequest[]
+  details?: ProductDetailsRequest
 }
 
 interface UpdateProductRequest extends Partial<CreateProductRequest> {}

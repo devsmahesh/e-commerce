@@ -25,6 +25,9 @@ import { tokenManager } from '@/lib/token'
 import { LoginModal } from '@/components/auth/login-modal'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ROUTES } from '@/lib/constants'
+import { ProductVariants } from '@/components/shop/product-variants'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { ProductVariant } from '@/types'
 
 export default function ProductPage() {
   const params = useParams()
@@ -42,6 +45,7 @@ export default function ProductPage() {
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [editingReview, setEditingReview] = useState<string | null>(null)
   const [reviewToDelete, setReviewToDelete] = useState<string | null>(null)
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
 
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
   const currentUser = useAppSelector((state) => state.auth.user)
@@ -83,19 +87,34 @@ export default function ProductPage() {
     setMounted(true)
   }, [])
 
+  // Set default variant when product loads
+  useEffect(() => {
+    if (product?.variants && product.variants.length > 0) {
+      const defaultVariant = product.variants.find(v => v.isDefault) || product.variants[0]
+      setSelectedVariant(defaultVariant)
+    }
+  }, [product])
+
   const handleAddToCart = () => {
     if (!product) return
+    
+    const price = selectedVariant ? selectedVariant.price : product.price
+    const variantId = selectedVariant?.id
+    const variantName = selectedVariant?.name
+
     dispatch(
       addItem({
-        id: `${product.id}-${Date.now()}`,
+        id: `${product.id}-${variantId || 'default'}-${Date.now()}`,
         product,
         quantity,
-        price: product.price,
+        price,
+        variantId,
+        variantName,
       })
     )
     toast({
       title: 'Added to cart',
-      description: `${product.name} has been added to your cart.`,
+      description: `${product.name}${variantName ? ` (${variantName})` : ''} has been added to your cart.`,
     })
   }
 
@@ -108,13 +127,19 @@ export default function ProductPage() {
       return
     }
 
+    const price = selectedVariant ? selectedVariant.price : product.price
+    const variantId = selectedVariant?.id
+    const variantName = selectedVariant?.name
+
     // Add product to cart only if user is logged in
     dispatch(
       addItem({
-        id: `${product.id}-${Date.now()}`,
+        id: `${product.id}-${variantId || 'default'}-${Date.now()}`,
         product,
         quantity,
-        price: product.price,
+        price,
+        variantId,
+        variantName,
       })
     )
     
@@ -413,15 +438,28 @@ export default function ProductPage() {
                 </div>
               </div>
 
+              {/* Variant Selection */}
+              {product.variants && product.variants.length > 0 && (
+                <ProductVariants
+                  variants={product.variants}
+                  selectedVariantId={selectedVariant?.id}
+                  onSelectVariant={setSelectedVariant}
+                />
+              )}
+
               <div className="flex items-center space-x-4">
-                <span className="text-3xl font-bold">{formatPrice(product.price)}</span>
-                {product.compareAtPrice && (
+                <span className="text-3xl font-bold">
+                  {formatPrice(selectedVariant ? selectedVariant.price : product.price)}
+                </span>
+                {(selectedVariant?.compareAtPrice || product.compareAtPrice) && (
                   <>
                     <span className="text-xl text-muted-foreground line-through">
-                      {formatPrice(product.compareAtPrice)}
+                      {formatPrice(selectedVariant?.compareAtPrice || product.compareAtPrice || 0)}
                     </span>
                     <span className="rounded-lg bg-destructive/10 px-2 py-1 text-sm font-semibold text-destructive">
-                      -{discountPercentage}%
+                      -{selectedVariant 
+                        ? Math.round(((selectedVariant.compareAtPrice || 0) - selectedVariant.price) / (selectedVariant.compareAtPrice || 1) * 100)
+                        : discountPercentage}%
                     </span>
                   </>
                 )}
@@ -443,21 +481,21 @@ export default function ProductPage() {
                     <Input
                       type="number"
                       min="1"
-                      max={product.stock}
+                      max={selectedVariant ? selectedVariant.stock : product.stock}
                       value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, parseInt(e.target.value) || 1)))}
+                      onChange={(e) => setQuantity(Math.max(1, Math.min(selectedVariant ? selectedVariant.stock : product.stock, parseInt(e.target.value) || 1)))}
                       className="w-20 text-center"
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
+                      onClick={() => setQuantity((q) => Math.min(selectedVariant ? selectedVariant.stock : product.stock, q + 1))}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {product.stock} in stock
+                    {selectedVariant ? selectedVariant.stock : product.stock} in stock
                   </span>
                 </div>
 
@@ -467,15 +505,15 @@ export default function ProductPage() {
                     size="lg"
                     className="flex-1"
                     onClick={handleAddToCart}
-                    disabled={product.stock === 0}
+                    disabled={(selectedVariant ? selectedVariant.stock : product.stock) === 0}
                   >
-                    {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                    {(selectedVariant ? selectedVariant.stock : product.stock) === 0 ? 'Out of Stock' : 'Add to Cart'}
                   </Button>
                   <Button
                     size="lg"
                     className="flex-1 bg-primary text-primary-foreground"
                     onClick={handleBuyNow}
-                    disabled={product.stock === 0}
+                    disabled={(selectedVariant ? selectedVariant.stock : product.stock) === 0}
                   >
                     Buy Now
                   </Button>
@@ -550,6 +588,52 @@ export default function ProductPage() {
                         </div>
                       )}
                     </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Collapsible Sections */}
+              {product.details && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <Accordion type="single" collapsible className="w-full">
+                      {product.details.whyChooseUs?.enabled && (
+                        <AccordionItem value="why-choose-us">
+                          <AccordionTrigger className="text-lg font-semibold text-green-700 dark:text-green-400">
+                            {product.details.whyChooseUs.title || 'Why Choose Our Pure and Natural A2 Desi Cow Ghee | Crafted Using Traditional Vedic Bilona Method?'}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="text-muted-foreground whitespace-pre-line">
+                              {product.details.whyChooseUs.content}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
+                      {product.details.keyBenefits?.enabled && (
+                        <AccordionItem value="key-benefits">
+                          <AccordionTrigger className="text-lg font-semibold text-green-700 dark:text-green-400">
+                            {product.details.keyBenefits.title || 'Key Benefits'}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="text-muted-foreground whitespace-pre-line">
+                              {product.details.keyBenefits.content}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
+                      {product.details.refundPolicy?.enabled && (
+                        <AccordionItem value="refund-policy">
+                          <AccordionTrigger className="text-lg font-semibold text-green-700 dark:text-green-400">
+                            {product.details.refundPolicy.title || 'Refund Policy'}
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="text-muted-foreground whitespace-pre-line">
+                              {product.details.refundPolicy.content}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )}
+                    </Accordion>
                   </CardContent>
                 </Card>
               )}

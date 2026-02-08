@@ -12,10 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useGetProductByIdQuery, useUpdateProductMutation, useUploadProductImageMutation } from '@/store/api/productsApi'
 import { useGetCategoriesQuery } from '@/store/api/categoriesApi'
 import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Plus, X, Loader2, Upload } from 'lucide-react'
+import { ArrowLeft, Plus, X, Loader2, Upload, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { Skeleton } from '@/components/ui/skeleton'
 import Image from 'next/image'
+import { Textarea } from '@/components/ui/textarea'
+import { ProductVariant, ProductDetails } from '@/types'
 
 const productSchema = Yup.object().shape({
   name: Yup.string().required('Product name is required'),
@@ -68,6 +70,8 @@ export default function EditProductPage() {
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([])
   const [filePreviews, setFilePreviews] = React.useState<{ file: File; preview: string }[]>([])
   const [tagInput, setTagInput] = React.useState('')
+  const [showVariants, setShowVariants] = React.useState(false)
+  const [showDetails, setShowDetails] = React.useState(false)
 
   const getInitialValues = () => {
     if (!product) {
@@ -90,8 +94,18 @@ export default function EditProductPage() {
         compareAtPrice: '',
         sku: '',
         brand: '',
+        // Variants and details
+        variants: [] as ProductVariant[],
+        details: {
+          whyChooseUs: { title: '', content: '', enabled: false },
+          keyBenefits: { title: '', content: '', enabled: false },
+          refundPolicy: { title: '', content: '', enabled: false },
+        } as ProductDetails,
       }
     }
+
+    const productVariants = (product as any).variants || []
+    const productDetails = (product as any).details || {}
 
     return {
       name: product.name || '',
@@ -112,6 +126,13 @@ export default function EditProductPage() {
       compareAtPrice: product.compareAtPrice ? String(product.compareAtPrice) : '',
       sku: product.sku || '',
       brand: product.brand || '',
+      // Variants and details
+      variants: productVariants.length > 0 ? productVariants : [] as ProductVariant[],
+      details: {
+        whyChooseUs: productDetails.whyChooseUs || { title: '', content: '', enabled: false },
+        keyBenefits: productDetails.keyBenefits || { title: '', content: '', enabled: false },
+        refundPolicy: productDetails.refundPolicy || { title: '', content: '', enabled: false },
+      } as ProductDetails,
     }
   }
 
@@ -226,6 +247,33 @@ export default function EditProductPage() {
           compareAtPrice: values.compareAtPrice ? parseFloat(values.compareAtPrice as string) : undefined,
           sku: values.sku || undefined,
           brand: values.brand || undefined,
+          // Variants and details
+          variants: values.variants && values.variants.length > 0 ? values.variants.map(v => ({
+            name: v.name,
+            price: v.price,
+            compareAtPrice: v.compareAtPrice,
+            stock: v.stock,
+            sku: v.sku,
+            tags: v.tags || [],
+            isDefault: v.isDefault || false,
+          })) : undefined,
+          details: showDetails ? {
+            whyChooseUs: values.details.whyChooseUs?.enabled ? {
+              title: values.details.whyChooseUs.title || undefined,
+              content: values.details.whyChooseUs.content,
+              enabled: true,
+            } : undefined,
+            keyBenefits: values.details.keyBenefits?.enabled ? {
+              title: values.details.keyBenefits.title || undefined,
+              content: values.details.keyBenefits.content,
+              enabled: true,
+            } : undefined,
+            refundPolicy: values.details.refundPolicy?.enabled ? {
+              title: values.details.refundPolicy.title || undefined,
+              content: values.details.refundPolicy.content,
+              enabled: true,
+            } : undefined,
+          } : undefined,
         },
       }).unwrap()
 
@@ -346,6 +394,71 @@ export default function EditProductPage() {
             const newTags = values.tags.filter((_: any, i: number) => i !== index)
             setFieldValue('tags', newTags)
           }
+
+          // Variant management functions
+          const handleAddVariant = () => {
+            const newVariant: ProductVariant = {
+              id: `temp-${Date.now()}`,
+              name: '',
+              price: 0,
+              stock: 0,
+              tags: [],
+              isDefault: values.variants.length === 0, // First variant is default
+            }
+            setFieldValue('variants', [...values.variants, newVariant])
+            setShowVariants(true)
+          }
+
+          const handleRemoveVariant = (index: number) => {
+            const newVariants = values.variants.filter((_, i) => i !== index)
+            // If removed variant was default, make first variant default
+            if (values.variants[index].isDefault && newVariants.length > 0) {
+              newVariants[0].isDefault = true
+            }
+            setFieldValue('variants', newVariants)
+          }
+
+          const handleUpdateVariant = (index: number, field: keyof ProductVariant, value: any) => {
+            const newVariants = [...values.variants]
+            newVariants[index] = { ...newVariants[index], [field]: value }
+            // If setting as default, unset others
+            if (field === 'isDefault' && value === true) {
+              newVariants.forEach((v, i) => {
+                if (i !== index) v.isDefault = false
+              })
+            }
+            setFieldValue('variants', newVariants)
+          }
+
+          const handleAddVariantTag = (variantIndex: number, tag: string) => {
+            const newVariants = [...values.variants]
+            const variant = newVariants[variantIndex]
+            if (!variant.tags) variant.tags = []
+            if (!variant.tags.includes(tag)) {
+              variant.tags.push(tag)
+            }
+            setFieldValue('variants', newVariants)
+          }
+
+          const handleRemoveVariantTag = (variantIndex: number, tagIndex: number) => {
+            const newVariants = [...values.variants]
+            newVariants[variantIndex].tags = newVariants[variantIndex].tags?.filter((_, i) => i !== tagIndex) || []
+            setFieldValue('variants', newVariants)
+          }
+
+          // Auto-show variants/details if they exist
+          React.useEffect(() => {
+            if (values.variants && values.variants.length > 0) {
+              setShowVariants(true)
+            }
+            if (values.details && (
+              values.details.whyChooseUs?.enabled ||
+              values.details.keyBenefits?.enabled ||
+              values.details.refundPolicy?.enabled
+            )) {
+              setShowDetails(true)
+            }
+          }, [values.variants, values.details])
 
           return (
             <Form>
@@ -759,6 +872,298 @@ export default function EditProductPage() {
                         </Label>
                       </div>
                     </CardContent>
+                  </Card>
+
+                  {/* Variants Section */}
+                  <Card className="bg-white border border-gray-200 shadow-sm">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-slate-900">Variants (Optional)</CardTitle>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setShowVariants(!showVariants)
+                            if (!showVariants && values.variants.length === 0) {
+                              handleAddVariant()
+                            }
+                          }}
+                        >
+                          {showVariants ? 'Hide' : 'Show'} Variants
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    {showVariants && (
+                      <CardContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                          Add different sizes/variants with their own prices and stock. If no variants are added, the product will use the base price and stock.
+                        </p>
+                        {values.variants.length > 0 && (
+                          <div className="space-y-4">
+                            {values.variants.map((variant, index) => (
+                              <div key={variant.id || index} className="border rounded-lg p-4 space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-semibold">Variant {index + 1}</h4>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={variant.isDefault || false}
+                                        onChange={(e) => handleUpdateVariant(index, 'isDefault', e.target.checked)}
+                                        className="h-4 w-4 rounded border-gray-300"
+                                      />
+                                      <Label className="text-xs cursor-pointer">Default</Label>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleRemoveVariant(index)}
+                                      className="text-destructive"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label>Variant Name *</Label>
+                                    <Input
+                                      value={variant.name}
+                                      onChange={(e) => handleUpdateVariant(index, 'name', e.target.value)}
+                                      placeholder="e.g., 1 Ltr, 500 ml"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>SKU</Label>
+                                    <Input
+                                      value={variant.sku || ''}
+                                      onChange={(e) => handleUpdateVariant(index, 'sku', e.target.value)}
+                                      placeholder="e.g., PROD-1L"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Price (₹) *</Label>
+                                    <Input
+                                      type="number"
+                                      value={variant.price || ''}
+                                      onChange={(e) => handleUpdateVariant(index, 'price', parseFloat(e.target.value) || 0)}
+                                      placeholder="0"
+                                      min="0"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Compare At Price (₹)</Label>
+                                    <Input
+                                      type="number"
+                                      value={variant.compareAtPrice || ''}
+                                      onChange={(e) => handleUpdateVariant(index, 'compareAtPrice', parseFloat(e.target.value) || undefined)}
+                                      placeholder="0"
+                                      min="0"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Stock *</Label>
+                                    <Input
+                                      type="number"
+                                      value={variant.stock || ''}
+                                      onChange={(e) => handleUpdateVariant(index, 'stock', parseInt(e.target.value) || 0)}
+                                      placeholder="0"
+                                      min="0"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Tags</Label>
+                                    <div className="flex gap-2">
+                                      <Select
+                                        value=""
+                                        onValueChange={(value) => {
+                                          if (value) handleAddVariantTag(index, value)
+                                        }}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Add tag" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="BEST SELLER">BEST SELLER</SelectItem>
+                                          <SelectItem value="MONEY SAVER">MONEY SAVER</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    {variant.tags && variant.tags.length > 0 && (
+                                      <div className="flex flex-wrap gap-2 mt-2">
+                                        {variant.tags.map((tag, tagIndex) => (
+                                          <div
+                                            key={tagIndex}
+                                            className="flex items-center gap-1 rounded-lg bg-muted px-2 py-1 text-xs"
+                                          >
+                                            <span>{tag}</span>
+                                            <Button
+                                              type="button"
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-3 w-3"
+                                              onClick={() => handleRemoveVariantTag(index, tagIndex)}
+                                            >
+                                              <X className="h-3 w-3" />
+                                            </Button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleAddVariant}
+                          className="w-full"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Variant
+                        </Button>
+                      </CardContent>
+                    )}
+                  </Card>
+
+                  {/* Product Details Section */}
+                  <Card className="bg-white border border-gray-200 shadow-sm">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-slate-900">Managing Details (Optional)</CardTitle>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowDetails(!showDetails)}
+                        >
+                          {showDetails ? 'Hide' : 'Show'} Details
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    {showDetails && (
+                      <CardContent className="space-y-6">
+                        <p className="text-sm text-muted-foreground">
+                          Configure collapsible sections that will appear on the product page. Enable the sections you want to show.
+                        </p>
+
+                        {/* Why Choose Us */}
+                        <div className="border rounded-lg p-4 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-base font-semibold">Why Choose Us</Label>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={values.details.whyChooseUs?.enabled || false}
+                                onChange={(e) => setFieldValue('details.whyChooseUs.enabled', e.target.checked)}
+                                className="h-4 w-4 rounded border-gray-300"
+                              />
+                              <Label className="text-sm cursor-pointer">Enable</Label>
+                            </div>
+                          </div>
+                          {values.details.whyChooseUs?.enabled && (
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label>Title (Optional)</Label>
+                                <Input
+                                  value={values.details.whyChooseUs.title || ''}
+                                  onChange={(e) => setFieldValue('details.whyChooseUs.title', e.target.value)}
+                                  placeholder="Leave empty for default title"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Content *</Label>
+                                <Textarea
+                                  value={values.details.whyChooseUs.content || ''}
+                                  onChange={(e) => setFieldValue('details.whyChooseUs.content', e.target.value)}
+                                  placeholder="Enter content for Why Choose Us section..."
+                                  rows={6}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Key Benefits */}
+                        <div className="border rounded-lg p-4 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-base font-semibold">Key Benefits</Label>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={values.details.keyBenefits?.enabled || false}
+                                onChange={(e) => setFieldValue('details.keyBenefits.enabled', e.target.checked)}
+                                className="h-4 w-4 rounded border-gray-300"
+                              />
+                              <Label className="text-sm cursor-pointer">Enable</Label>
+                            </div>
+                          </div>
+                          {values.details.keyBenefits?.enabled && (
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label>Title (Optional)</Label>
+                                <Input
+                                  value={values.details.keyBenefits.title || ''}
+                                  onChange={(e) => setFieldValue('details.keyBenefits.title', e.target.value)}
+                                  placeholder="Leave empty for default title"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Content *</Label>
+                                <Textarea
+                                  value={values.details.keyBenefits.content || ''}
+                                  onChange={(e) => setFieldValue('details.keyBenefits.content', e.target.value)}
+                                  placeholder="Enter key benefits..."
+                                  rows={6}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Refund Policy */}
+                        <div className="border rounded-lg p-4 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-base font-semibold">Refund Policy</Label>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={values.details.refundPolicy?.enabled || false}
+                                onChange={(e) => setFieldValue('details.refundPolicy.enabled', e.target.checked)}
+                                className="h-4 w-4 rounded border-gray-300"
+                              />
+                              <Label className="text-sm cursor-pointer">Enable</Label>
+                            </div>
+                          </div>
+                          {values.details.refundPolicy?.enabled && (
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label>Title (Optional)</Label>
+                                <Input
+                                  value={values.details.refundPolicy.title || ''}
+                                  onChange={(e) => setFieldValue('details.refundPolicy.title', e.target.value)}
+                                  placeholder="Leave empty for default title"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Content *</Label>
+                                <Textarea
+                                  value={values.details.refundPolicy.content || ''}
+                                  onChange={(e) => setFieldValue('details.refundPolicy.content', e.target.value)}
+                                  placeholder="Enter refund policy details..."
+                                  rows={6}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    )}
                   </Card>
                 </div>
               </div>

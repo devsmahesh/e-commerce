@@ -12,6 +12,35 @@ export interface User {
   updatedAt: string
 }
 
+export interface ProductVariant {
+  id: string
+  name: string // e.g., "1 Ltr", "500 ml", "2 Ltr", "5 Ltr Dolchi"
+  price: number
+  compareAtPrice?: number
+  stock: number
+  sku?: string
+  tags?: string[] // e.g., ["BEST SELLER", "MONEY SAVER"]
+  isDefault?: boolean
+}
+
+export interface ProductDetails {
+  whyChooseUs?: {
+    title?: string
+    content: string
+    enabled: boolean
+  }
+  keyBenefits?: {
+    title?: string
+    content: string
+    enabled: boolean
+  }
+  refundPolicy?: {
+    title?: string
+    content: string
+    enabled: boolean
+  }
+}
+
 export interface Product {
   id: string
   name: string
@@ -32,6 +61,8 @@ export interface Product {
   purity?: number // Purity percentage (e.g., 99.9%)
   origin?: string // Origin/region of the ghee
   shelfLife?: string // Shelf life information
+  variants?: ProductVariant[] // Product variants (sizes, etc.)
+  details?: ProductDetails // Collapsible sections (Why Choose Us, Key Benefits, etc.)
   createdAt: string
   updatedAt: string
 }
@@ -51,6 +82,8 @@ export interface CartItem {
   product: Product
   quantity: number
   price: number
+  variantId?: string // Selected variant ID
+  variantName?: string // Selected variant name for display
 }
 
 export interface Cart {
@@ -108,6 +141,8 @@ export interface OrderItem {
   product: Product
   quantity: number
   price: number
+  variantId?: string // Selected variant ID
+  variantName?: string // Selected variant name for display
 }
 
 export interface Coupon {

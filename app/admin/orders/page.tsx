@@ -486,6 +486,9 @@ export default function AdminOrdersPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-semibold text-foreground">{productName}</h3>
+                            {item.variantName && (
+                              <p className="text-xs text-muted-foreground mt-1">Variant: {item.variantName}</p>
+                            )}
                             <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
                               <span>Quantity: {item.quantity}</span>
                               <span>Price: {formatPrice(item.price)}</span>

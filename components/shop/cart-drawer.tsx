@@ -121,6 +121,9 @@ export function CartDrawer() {
                           </div>
                           <div className="flex flex-1 flex-col">
                             <h3 className="font-medium">{item.product.name}</h3>
+                            {item.variantName && (
+                              <p className="text-xs text-muted-foreground">Variant: {item.variantName}</p>
+                            )}
                             <p className="text-sm text-muted-foreground">
                               {formatPrice(item.price)}
                             </p>
