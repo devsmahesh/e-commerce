@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Heart, Star } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,9 +17,14 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart, onAddToWishlist }: ProductCardProps) {
+  const router = useRouter()
   const discountPercentage = product.compareAtPrice
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
     : 0
+
+  const handleBuyNow = () => {
+    router.push(`/product/${product.slug}`)
+  }
 
   return (
     <motion.div
@@ -91,13 +97,23 @@ export function ProductCard({ product, onAddToCart, onAddToWishlist }: ProductCa
               </span>
             )}
           </div>
-          <Button
-            className="w-full bg-primary text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-lg"
-            onClick={() => onAddToCart?.(product)}
-            disabled={product.stock === 0}
-          >
-            {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1 transition-all duration-300 hover:shadow-lg"
+              onClick={() => onAddToCart?.(product)}
+              disabled={product.stock === 0}
+            >
+              {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+            </Button>
+            <Button
+              className="flex-1 bg-primary text-primary-foreground transition-all duration-300 hover:bg-primary/90 hover:shadow-lg"
+              onClick={handleBuyNow}
+              disabled={product.stock === 0}
+            >
+              Buy Now
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </motion.div>

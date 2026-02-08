@@ -4,6 +4,7 @@ import { CartDrawer } from '@/components/shop/cart-drawer'
 import { HeroBanner } from '@/components/shop/hero-banner'
 import { CategoriesGrid } from '@/components/shop/categories-grid'
 import { FeaturedProducts } from '@/components/shop/featured-products'
+import { FarmToTable } from '@/components/shop/farm-to-table'
 import { FlashDeals } from '@/components/shop/flash-deals'
 
 export default function HomePage() {
@@ -14,6 +15,7 @@ export default function HomePage() {
         <HeroBanner />
         <CategoriesGrid />
         <FeaturedProducts />
+        <FarmToTable />
         <FlashDeals />
       </main>
       <Footer />

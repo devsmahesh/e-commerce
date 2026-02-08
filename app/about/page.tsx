@@ -311,7 +311,7 @@ export default function AboutPage() {
                     <div>
                       <h3 className="font-semibold text-lg mb-2">Premium Quality</h3>
                       <p className="text-muted-foreground">
-                        Our ghee is made from the finest cow and buffalo milk, using time-tested traditional 
+                        Our ghee is made from the finest cow and buffalo ghee, using time-tested traditional 
                         methods that preserve all the natural goodness and flavor.
                       </p>
                     </div>

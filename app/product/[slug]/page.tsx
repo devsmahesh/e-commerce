@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
@@ -24,9 +24,11 @@ import { useState, useEffect } from 'react'
 import { tokenManager } from '@/lib/token'
 import { LoginModal } from '@/components/auth/login-modal'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { ROUTES } from '@/lib/constants'
 
 export default function ProductPage() {
   const params = useParams()
+  const router = useRouter()
   const slug = params?.slug as string
   const { data: product, isLoading } = useGetProductBySlugQuery(slug)
   const dispatch = useAppDispatch()
@@ -95,6 +97,29 @@ export default function ProductPage() {
       title: 'Added to cart',
       description: `${product.name} has been added to your cart.`,
     })
+  }
+
+  const handleBuyNow = () => {
+    if (!product) return
+
+    // Check authentication first
+    if (!hasAuth) {
+      setShowLoginModal(true)
+      return
+    }
+
+    // Add product to cart only if user is logged in
+    dispatch(
+      addItem({
+        id: `${product.id}-${Date.now()}`,
+        product,
+        quantity,
+        price: product.price,
+      })
+    )
+    
+    // Navigate to checkout
+    router.push(ROUTES.CHECKOUT)
   }
 
   const handleWishlistToggle = async () => {
@@ -438,12 +463,21 @@ export default function ProductPage() {
 
                 <div className="flex flex-wrap gap-4">
                   <Button
+                    variant="outline"
                     size="lg"
                     className="flex-1"
                     onClick={handleAddToCart}
                     disabled={product.stock === 0}
                   >
                     {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                  </Button>
+                  <Button
+                    size="lg"
+                    className="flex-1 bg-primary text-primary-foreground"
+                    onClick={handleBuyNow}
+                    disabled={product.stock === 0}
+                  >
+                    Buy Now
                   </Button>
                   <Button 
                     variant="outline" 
