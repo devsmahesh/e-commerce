@@ -72,7 +72,9 @@ export function Navbar() {
 
   const navLinks = [
     { href: ROUTES.HOME, label: 'Home' },
-    { href: ROUTES.PRODUCTS, label: 'Products' },
+    { href: ROUTES.PRODUCTS, label: 'Product' },
+    { href: ROUTES.ABOUT, label: 'Why choose us' },
+    { href: ROUTES.CONTACT, label: 'contact' },
   ]
 
   return (

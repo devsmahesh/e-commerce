@@ -13,8 +13,8 @@ export function Footer() {
       { label: 'New Arrivals', href: `${ROUTES.PRODUCTS}?sort=newest` },
     ],
     company: [
-      { label: 'About Us', href: '/about' },
-      { label: 'Contact', href: '/contact' },
+      { label: 'Why choose us', href: ROUTES.ABOUT },
+      { label: 'Contact', href: ROUTES.CONTACT },
       { label: 'Privacy Policy', href: '/privacy' },
       { label: 'Terms of Service', href: '/terms' },
     ],
