@@ -20,19 +20,19 @@ const config: Config = {
       colors: {
         border: '#E5E7EB',
         input: '#E5E7EB',
-        ring: '#F89C1D',
+        ring: '#16A34A',
         background: '#F8FAFC',
         foreground: '#0F172A',
         primary: {
-          DEFAULT: '#67033F',
+          DEFAULT: '#15803D',
           foreground: '#FFFFFF',
         },
         secondary: {
-          DEFAULT: '#F89C1D',
+          DEFAULT: '#84CC16',
           foreground: '#0F172A',
         },
         accent: {
-          DEFAULT: '#F89C1D',
+          DEFAULT: '#22C55E',
           foreground: '#0F172A',
         },
         destructive: {
