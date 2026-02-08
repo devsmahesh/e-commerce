@@ -73,6 +73,25 @@ export default function EditProductPage() {
   const [showVariants, setShowVariants] = React.useState(false)
   const [showDetails, setShowDetails] = React.useState(false)
 
+  // Auto-show variants/details if they exist in the product
+  React.useEffect(() => {
+    if (product) {
+      const productVariants = (product as any).variants || []
+      const productDetails = (product as any).details || {}
+      
+      if (productVariants.length > 0) {
+        setShowVariants(true)
+      }
+      if (
+        productDetails.whyChooseUs?.enabled ||
+        productDetails.keyBenefits?.enabled ||
+        productDetails.refundPolicy?.enabled
+      ) {
+        setShowDetails(true)
+      }
+    }
+  }, [product])
+
   const getInitialValues = () => {
     if (!product) {
       return {
@@ -248,7 +267,7 @@ export default function EditProductPage() {
           sku: values.sku || undefined,
           brand: values.brand || undefined,
           // Variants and details
-          variants: values.variants && values.variants.length > 0 ? values.variants.map(v => ({
+          variants: values.variants && values.variants.length > 0 ? values.variants.map((v: ProductVariant) => ({
             name: v.name,
             price: v.price,
             compareAtPrice: v.compareAtPrice,
@@ -410,7 +429,7 @@ export default function EditProductPage() {
           }
 
           const handleRemoveVariant = (index: number) => {
-            const newVariants = values.variants.filter((_, i) => i !== index)
+            const newVariants = values.variants.filter((_: ProductVariant, i: number) => i !== index)
             // If removed variant was default, make first variant default
             if (values.variants[index].isDefault && newVariants.length > 0) {
               newVariants[0].isDefault = true
@@ -442,23 +461,9 @@ export default function EditProductPage() {
 
           const handleRemoveVariantTag = (variantIndex: number, tagIndex: number) => {
             const newVariants = [...values.variants]
-            newVariants[variantIndex].tags = newVariants[variantIndex].tags?.filter((_, i) => i !== tagIndex) || []
+            newVariants[variantIndex].tags = newVariants[variantIndex].tags?.filter((_: string, i: number) => i !== tagIndex) || []
             setFieldValue('variants', newVariants)
           }
-
-          // Auto-show variants/details if they exist
-          React.useEffect(() => {
-            if (values.variants && values.variants.length > 0) {
-              setShowVariants(true)
-            }
-            if (values.details && (
-              values.details.whyChooseUs?.enabled ||
-              values.details.keyBenefits?.enabled ||
-              values.details.refundPolicy?.enabled
-            )) {
-              setShowDetails(true)
-            }
-          }, [values.variants, values.details])
 
           return (
             <Form>
@@ -901,7 +906,7 @@ export default function EditProductPage() {
                         </p>
                         {values.variants.length > 0 && (
                           <div className="space-y-4">
-                            {values.variants.map((variant, index) => (
+                            {values.variants.map((variant: ProductVariant, index: number) => (
                               <div key={variant.id || index} className="border rounded-lg p-4 space-y-4">
                                 <div className="flex items-center justify-between">
                                   <h4 className="font-semibold">Variant {index + 1}</h4>
