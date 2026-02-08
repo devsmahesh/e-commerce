@@ -262,8 +262,8 @@ export default function PrivacyPage() {
                   <div className="space-y-2">
                     <p>
                       <strong className="text-foreground">Email:</strong>{' '}
-                      <a href="mailto:privacy@runiche.com" className="text-amber-600 dark:text-amber-400 hover:underline">
-                        privacy@runiche.com
+                      <a href="mailto:runiche46@gmail.com" className="text-amber-600 dark:text-amber-400 hover:underline">
+                        runiche46@gmail.com
                       </a>
                     </p>
                     <p>
@@ -273,8 +273,7 @@ export default function PrivacyPage() {
                       </a>
                     </p>
                     <p>
-                      <strong className="text-foreground">Address:</strong> Runiche Ghee Products, 123 Business Street, 
-                      City, State 123456, India
+                      <strong className="text-foreground">Address:</strong> Runiche Farm Village, Vedia, Jalore, Rajasthan 307029
                     </p>
                   </div>
                 </div>

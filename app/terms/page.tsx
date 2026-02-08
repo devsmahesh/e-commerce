@@ -313,8 +313,8 @@ export default function TermsPage() {
                   <div className="space-y-2">
                     <p>
                       <strong className="text-foreground">Email:</strong>{' '}
-                      <a href="mailto:legal@runiche.com" className="text-amber-600 dark:text-amber-400 hover:underline">
-                        legal@runiche.com
+                      <a href="mailto:runiche46@gmail.com" className="text-amber-600 dark:text-amber-400 hover:underline">
+                        runiche46@gmail.com
                       </a>
                     </p>
                     <p>
@@ -324,8 +324,7 @@ export default function TermsPage() {
                       </a>
                     </p>
                     <p>
-                      <strong className="text-foreground">Address:</strong> Runiche Ghee Products, 123 Business Street, 
-                      City, State 123456, India
+                      <strong className="text-foreground">Address:</strong> Runiche Farm Village, Vedia, Jalore, Rajasthan 307029
                     </p>
                   </div>
                 </div>

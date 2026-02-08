@@ -106,13 +106,8 @@ export default function ContactPage() {
                         <div>
                           <h3 className="font-semibold mb-1">Email</h3>
                           <p className="text-sm text-muted-foreground">
-                            <a href="mailto:support@runiche.com" className="hover:text-foreground transition-colors">
-                              support@runiche.com
-                            </a>
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            <a href="mailto:sales@runiche.com" className="hover:text-foreground transition-colors">
-                              sales@runiche.com
+                            <a href="mailto:runiche46@gmail.com" className="hover:text-foreground transition-colors">
+                              runiche46@gmail.com
                             </a>
                           </p>
                         </div>
@@ -146,10 +141,8 @@ export default function ContactPage() {
                         <div>
                           <h3 className="font-semibold mb-1">Address</h3>
                           <p className="text-sm text-muted-foreground">
-                            Runiche Ghee Products<br />
-                            123 Business Street<br />
-                            City, State 123456<br />
-                            India
+                            Runiche Farm Village, Vedia, Jalore, Rajasthan<br />
+                            307029
                           </p>
                         </div>
                       </div>
