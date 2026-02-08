@@ -18,10 +18,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { useGetProfileQuery, useUpdateProfileMutation, useGetAddressesQuery, useAddAddressMutation, useUpdateAddressMutation, useDeleteAddressMutation, useUploadAvatarMutation, useGetWishlistQuery, useRemoveFromWishlistMutation } from '@/store/api/usersApi'
+import { useGetProfileQuery, useUpdateProfileMutation, useGetAddressesQuery, useAddAddressMutation, useUpdateAddressMutation, useDeleteAddressMutation, useUploadAvatarMutation, useGetWishlistQuery, useRemoveFromWishlistMutation, useChangePasswordMutation } from '@/store/api/usersApi'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, Camera, Edit, Trash2, Heart, User as UserIcon, MapPin } from 'lucide-react'
+import { Loader2, Camera, Edit, Trash2, Heart, User as UserIcon, MapPin, Lock, Eye, EyeOff } from 'lucide-react'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import { Address, Product, User } from '@/types'
@@ -45,6 +45,20 @@ const addressSchema = Yup.object().shape({
   country: Yup.string().min(1, 'Country is required').required('Country is required'),
   label: Yup.string().optional(),
   isDefault: Yup.boolean().optional(),
+})
+
+const changePasswordSchema = Yup.object().shape({
+  currentPassword: Yup.string().required('Current password is required'),
+  newPassword: Yup.string()
+    .min(8, 'Password must be at least 8 characters')
+    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .matches(/[0-9]/, 'Password must contain at least one number')
+    .matches(/[^A-Za-z0-9]/, 'Password must contain at least one special character')
+    .required('New password is required'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('newPassword')], "Passwords don't match")
+    .required('Please confirm your new password'),
 })
 
 export default function ProfilePage() {
@@ -86,6 +100,7 @@ export default function ProfilePage() {
   const [createAddress, { isLoading: creatingAddress }] = useAddAddressMutation()
   const [updateAddress, { isLoading: updatingAddress }] = useUpdateAddressMutation()
   const [deleteAddress, { isLoading: deletingAddress }] = useDeleteAddressMutation()
+  const [changePassword, { isLoading: changingPassword }] = useChangePasswordMutation()
   const { toast } = useToast()
   const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
@@ -93,6 +108,9 @@ export default function ProfilePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [addressToDelete, setAddressToDelete] = React.useState<string | null>(null)
   const [addressToDeleteOriginalId, setAddressToDeleteOriginalId] = React.useState<string | null>(null)
+  const [showCurrentPassword, setShowCurrentPassword] = React.useState(false)
+  const [showNewPassword, setShowNewPassword] = React.useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
 
   const getProfileInitialValues = () => ({
     firstName: user?.firstName || '',
@@ -376,6 +394,32 @@ export default function ProfilePage() {
     }
   }
 
+  const handleChangePassword = async (
+    values: { currentPassword: string; newPassword: string; confirmPassword: string },
+    { resetForm }: { resetForm: () => void }
+  ) => {
+    try {
+      await changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      }).unwrap()
+      toast({
+        title: 'Password changed',
+        description: 'Your password has been changed successfully.',
+      })
+      resetForm()
+      setShowCurrentPassword(false)
+      setShowNewPassword(false)
+      setShowConfirmPassword(false)
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error?.data?.message || 'Failed to change password. Please check your current password.',
+        variant: 'destructive',
+      })
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -548,6 +592,143 @@ export default function ProfilePage() {
                   </Formik>
                     </>
                   )}
+                </CardContent>
+              </Card>
+
+              {/* Change Password Section */}
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lock className="h-5 w-5" />
+                    Change Password
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Formik
+                    initialValues={{
+                      currentPassword: '',
+                      newPassword: '',
+                      confirmPassword: '',
+                    }}
+                    validationSchema={changePasswordSchema}
+                    onSubmit={(values, { resetForm }) => handleChangePassword(values, { resetForm })}
+                  >
+                    {({ isSubmitting, errors, touched, resetForm }) => (
+                      <Form className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="currentPassword">Current Password</Label>
+                          <div className="relative">
+                            <Field
+                              as={Input}
+                              id="currentPassword"
+                              name="currentPassword"
+                              type={showCurrentPassword ? 'text' : 'password'}
+                              placeholder="Enter your current password"
+                              className={`pr-10 ${
+                                errors.currentPassword && touched.currentPassword
+                                  ? 'border-destructive focus-visible:ring-destructive'
+                                  : ''
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showCurrentPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                          <ErrorMessage name="currentPassword" component="p" className="text-sm text-destructive" />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="newPassword">New Password</Label>
+                          <div className="relative">
+                            <Field
+                              as={Input}
+                              id="newPassword"
+                              name="newPassword"
+                              type={showNewPassword ? 'text' : 'password'}
+                              placeholder="Enter your new password"
+                              className={`pr-10 ${
+                                errors.newPassword && touched.newPassword
+                                  ? 'border-destructive focus-visible:ring-destructive'
+                                  : ''
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showNewPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                          <ErrorMessage name="newPassword" component="p" className="text-sm text-destructive" />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                          <div className="relative">
+                            <Field
+                              as={Input}
+                              id="confirmPassword"
+                              name="confirmPassword"
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              placeholder="Confirm your new password"
+                              className={`pr-10 ${
+                                errors.confirmPassword && touched.confirmPassword
+                                  ? 'border-destructive focus-visible:ring-destructive'
+                                  : ''
+                              }`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                              ) : (
+                                <Eye className="h-5 w-5" />
+                              )}
+                            </button>
+                          </div>
+                          <ErrorMessage name="confirmPassword" component="p" className="text-sm text-destructive" />
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button type="submit" disabled={changingPassword || isSubmitting}>
+                            {(changingPassword || isSubmitting) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Change Password
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              resetForm()
+                              setShowCurrentPassword(false)
+                              setShowNewPassword(false)
+                              setShowConfirmPassword(false)
+                            }}
+                          >
+                            Clear
+                          </Button>
+                        </div>
+                      </Form>
+                    )}
+                  </Formik>
                 </CardContent>
               </Card>
             </TabsContent>

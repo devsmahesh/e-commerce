@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useForgotPasswordMutation } from '@/store/api/authApi'
 import { useToast } from '@/hooks/use-toast'
 import { ROUTES } from '@/lib/constants'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Mail, CheckCircle2 } from 'lucide-react'
 
 const forgotPasswordSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email address').required('Email is required'),
@@ -48,20 +48,40 @@ export default function ForgotPasswordPage() {
       <main className="flex min-h-screen items-center justify-center py-12">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Forgot Password</CardTitle>
-            <CardDescription>
-              Enter your email address and we&apos;ll send you a link to reset your password
+            <div className="flex justify-center mb-4">
+              {isSuccess ? (
+                <CheckCircle2 className="h-12 w-12 text-green-500" />
+              ) : (
+                <Mail className="h-12 w-12 text-primary" />
+              )}
+            </div>
+            <CardTitle className="text-2xl font-bold text-center">
+              {isSuccess ? 'Check Your Email' : 'Forgot Password'}
+            </CardTitle>
+            <CardDescription className="text-center">
+              {isSuccess
+                ? 'We\'ve sent a password reset link to your email address.'
+                : 'Enter your email address and we\'ll send you a link to reset your password'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isSuccess ? (
               <div className="space-y-4 text-center">
-                <p className="text-muted-foreground">
-                  We&apos;ve sent a password reset link to your email address.
+                <p className="text-sm text-muted-foreground">
+                  Please check your inbox and click on the reset link to create a new password. The link will expire in 1 hour.
                 </p>
-                <Link href={ROUTES.LOGIN}>
-                  <Button variant="outline">Back to Login</Button>
-                </Link>
+                <div className="flex flex-col gap-2">
+                  <Link href={ROUTES.LOGIN} className="w-full">
+                    <Button className="w-full">Back to Login</Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.location.reload()}
+                    className="w-full"
+                  >
+                    Send Another Email
+                  </Button>
+                </div>
               </div>
             ) : (
               <Formik

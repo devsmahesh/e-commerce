@@ -20,6 +20,11 @@ interface CreateAddressRequest {
 
 interface UpdateAddressRequest extends Partial<CreateAddressRequest> {}
 
+interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
 export const usersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     // Get Profile
@@ -190,6 +195,15 @@ export const usersApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Wishlist'],
     }),
+
+    // Change Password
+    changePassword: builder.mutation<{ success: boolean; message: string }, ChangePasswordRequest>({
+      query: (data) => ({
+        url: '/users/profile/change-password',
+        method: 'PUT',
+        body: data,
+      }),
+    }),
   }),
 })
 
@@ -204,5 +218,6 @@ export const {
   useAddToWishlistMutation,
   useRemoveFromWishlistMutation,
   useUploadAvatarMutation,
+  useChangePasswordMutation,
 } = usersApi
 
