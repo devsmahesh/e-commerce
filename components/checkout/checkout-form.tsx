@@ -575,7 +575,7 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
         <h3 className="mb-4 text-lg font-semibold">Payment Methods</h3>
         
         {/* Payment Method Selection */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 gap-4 mb-4">
           {/* Razorpay Option */}
           <button
             type="button"
@@ -595,11 +595,11 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
             <span className="text-xs text-muted-foreground mt-1">UPI, Card, Net Banking</span>
           </button>
 
-          {/* COD Option */}
+          {/* COD Option - Hidden but code preserved */}
           <button
             type="button"
             onClick={() => handlePaymentMethodSelect('cod')}
-            className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all relative ${
+            className={`hidden flex flex-col items-center p-4 rounded-lg border-2 transition-all relative ${
               paymentMethod === 'cod'
                 ? 'border-primary bg-primary/5 shadow-sm'
                 : 'border-border hover:border-primary/50 bg-background'
@@ -614,9 +614,9 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
           </button>
         </div>
 
-        {/* Warning Badge for COD */}
+        {/* Warning Badge for COD - Hidden but code preserved */}
         {paymentMethod === 'cod' && (
-          <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg mb-4">
+          <div className="hidden flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg mb-4">
             <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
             <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
               🚚 COD Orders are manually verified before dispatch.
@@ -646,7 +646,7 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
       ) : (
         <Button
           onClick={handleCODButtonClick}
-          className="w-full"
+          className="hidden w-full"
           disabled={isCODLoading}
           size="lg"
           variant="outline"
