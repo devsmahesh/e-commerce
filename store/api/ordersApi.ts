@@ -47,6 +47,50 @@ export const ordersApi = baseApi.injectEndpoints({
         url: '/orders/admin',
         params,
       }),
+      transformResponse: (response: any) => {
+        // Handle wrapped response structure: { success, message, data: { items, meta } }
+        if (response.error || (response.success === false)) {
+          throw response
+        }
+        
+        const responseData = response.data || response
+        const items = responseData.items || responseData.data || []
+        
+        // Ensure items is an array
+        if (!Array.isArray(items)) {
+          console.error('Expected items to be an array, got:', items)
+          return {
+            data: [],
+            meta: responseData.meta || response.meta || {
+              page: 1,
+              limit: 10,
+              total: 0,
+              totalPages: 0,
+            },
+          }
+        }
+        
+        // Transform orders: _id to id, ensure proper structure
+        const transformedItems = items.map((order: any) => ({
+          ...order,
+          id: order._id || order.id,
+          // Ensure customer object has id
+          customer: order.customer ? {
+            ...order.customer,
+            id: order.customer._id || order.customer.id,
+          } : order.customer,
+        }))
+        
+        return {
+          data: transformedItems,
+          meta: responseData.meta || response.meta || {
+            page: 1,
+            limit: 10,
+            total: transformedItems.length,
+            totalPages: 1,
+          },
+        }
+      },
       providesTags: ['Order'],
     }),
 

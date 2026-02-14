@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -49,10 +49,16 @@ export default function AdminOrdersPage() {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [detailOrder, setDetailOrder] = useState<Order | null>(null)
   const [copiedTrackingId, setCopiedTrackingId] = useState<string | null>(null)
-  const { data, isLoading } = useGetAllOrdersQuery({ 
-    page: 1, 
-    status: status === 'all' ? undefined : status 
-  })
+  
+  // Build query parameters conditionally to avoid undefined values
+  // Memoize to ensure RTK Query properly detects parameter changes
+  const queryParams = useMemo(() => {
+    return status === 'all' 
+      ? { page: 1 }
+      : { page: 1, status }
+  }, [status])
+  
+  const { data, isLoading } = useGetAllOrdersQuery(queryParams)
   const [updateStatus] = useUpdateOrderStatusMutation()
   const [refundOrder] = useRefundOrderMutation()
   const { toast } = useToast()
