@@ -487,7 +487,9 @@ export default function AdminDashboardPage() {
               </div>
             ) : recentOrders && recentOrders.length > 0 ? (
               <div className="space-y-3">
-                {recentOrders.map((order: Order) => (
+                {recentOrders
+                  .filter((order: Order) => order.paymentStatus !== 'pending') // Only show orders after payment success/failure
+                  .map((order: Order) => (
                   <Link 
                     key={order.id} 
                     href={`/admin/orders?orderId=${order.id}`}

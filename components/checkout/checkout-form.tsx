@@ -410,9 +410,12 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
         handler: paymentHandler,
         modal: {
           ondismiss: () => {
+            // Note: Order is created with paymentStatus 'pending' 
+            // Backend should handle cleanup of abandoned orders (not completed within X minutes)
+            // Admin will not see orders with paymentStatus 'pending' (filtered on frontend)
             toast({
               title: 'Payment cancelled',
-              description: 'You cancelled the payment process.',
+              description: 'You cancelled the payment process. The order will not be processed until payment is completed.',
               variant: 'default',
             })
           },

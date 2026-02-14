@@ -19,17 +19,28 @@ export function FeaturedProducts() {
   const { toast } = useToast()
 
   const handleAddToCart = (product: Product) => {
+    // Get the variant to use (default variant or first variant)
+    const variant = product.variants && product.variants.length > 0
+      ? product.variants.find(v => v.isDefault) || product.variants[0]
+      : null
+    
+    const price = variant ? variant.price : product.price
+    const variantId = variant?.id
+    const variantName = variant?.name
+
     dispatch(
       addItem({
-        id: `${product.id}-${Date.now()}`,
+        id: `${product.id}-${variantId || 'default'}-${Date.now()}`,
         product,
         quantity: 1,
-        price: product.price,
+        price,
+        variantId,
+        variantName,
       })
     )
     toast({
       title: 'Added to cart',
-      description: `${product.name} has been added to your cart.`,
+      description: `${product.name}${variantName ? ` (${variantName})` : ''} has been added to your cart.`,
     })
   }
 

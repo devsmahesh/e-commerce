@@ -218,7 +218,13 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
                     <p className="text-xs text-muted-foreground line-clamp-1">
                       {product.category?.name || 'Uncategorized'}
                     </p>
-                    <p className="text-sm font-semibold mt-1">{formatPrice(product.price)}</p>
+                    <p className="text-sm font-semibold mt-1">
+                      {formatPrice(
+                        product.variants && product.variants.length > 0
+                          ? (product.variants.find(v => v.isDefault) || product.variants[0]).price
+                          : product.price
+                      )}
+                    </p>
                   </div>
                 </button>
               ))}

@@ -16,12 +16,20 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addItem: (state, action: PayloadAction<CartItem>) => {
+      // Find existing item by both product ID and variant ID
+      // This ensures different variants of the same product are treated as separate items
       const existingItem = state.items.find(
-        (item) => item.product.id === action.payload.product.id
+        (item) => 
+          item.product.id === action.payload.product.id &&
+          (item.variantId || 'default') === (action.payload.variantId || 'default')
       )
       if (existingItem) {
+        // Same product with same variant - just update quantity
         existingItem.quantity += action.payload.quantity
+        // Also ensure price is updated in case it changed
+        existingItem.price = action.payload.price
       } else {
+        // Different variant or new product - add as new item
         state.items.push(action.payload)
       }
     },

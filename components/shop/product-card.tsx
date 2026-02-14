@@ -18,8 +18,21 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart, onAddToWishlist }: ProductCardProps) {
   const router = useRouter()
-  const discountPercentage = product.compareAtPrice
-    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+  
+  // Get the variant to display (default variant or first variant)
+  const displayVariant = product.variants && product.variants.length > 0
+    ? product.variants.find(v => v.isDefault) || product.variants[0]
+    : null
+  
+  // Use variant price if available, otherwise use product price
+  const displayPrice = displayVariant ? displayVariant.price : product.price
+  const displayCompareAtPrice = displayVariant 
+    ? displayVariant.compareAtPrice 
+    : product.compareAtPrice
+  
+  // Calculate discount percentage based on display prices
+  const discountPercentage = displayCompareAtPrice
+    ? Math.round(((displayCompareAtPrice - displayPrice) / displayCompareAtPrice) * 100)
     : 0
 
   const handleBuyNow = () => {
@@ -90,10 +103,10 @@ export function ProductCard({ product, onAddToCart, onAddToWishlist }: ProductCa
             </span>
           </div>
           <div className="flex items-baseline space-x-2">
-            <span className="text-xl font-bold text-foreground">{formatPrice(product.price)}</span>
-            {product.compareAtPrice && (
+            <span className="text-xl font-bold text-foreground">{formatPrice(displayPrice)}</span>
+            {displayCompareAtPrice && (
               <span className="text-sm font-medium text-muted-foreground line-through">
-                {formatPrice(product.compareAtPrice)}
+                {formatPrice(displayCompareAtPrice)}
               </span>
             )}
           </div>

@@ -331,6 +331,36 @@ export default function AdminOrdersPage() {
                           </div>
                         )}
                       </div>
+                      {/* Payment Status Warning Messages */}
+                      {(() => {
+                        const paymentStatus = order.paymentStatus?.toUpperCase()
+                        if (paymentStatus === 'PENDING') {
+                          return (
+                            <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
+                              <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                                ⚠️ Payment Not Initiated — This order was created but payment hasn't been started yet. The customer hasn't been redirected to the payment gateway.
+                              </p>
+                            </div>
+                          )
+                        } else if (paymentStatus === 'CREATED') {
+                          return (
+                            <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
+                              <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                                ⚠️ Payment Incomplete — The customer was redirected to the payment page but hasn't completed the payment yet. They may have closed the payment window or cancelled the transaction.
+                              </p>
+                            </div>
+                          )
+                        } else if (paymentStatus === 'VERIFICATION_PENDING') {
+                          return (
+                            <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
+                              <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+                                ⚠️ Payment Verification Pending — The customer claims payment was successful, but we're still waiting for confirmation from the payment gateway. Please verify manually if needed.
+                              </p>
+                            </div>
+                          )
+                        }
+                        return null
+                      })()}
                       {order.trackingNumber && (
                         <div className="mt-2 text-xs text-muted-foreground">
                           Copy the Tracking and track the shipment in the Delhivery App.
