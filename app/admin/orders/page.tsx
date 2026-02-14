@@ -25,7 +25,7 @@ import { Order } from '@/types'
 import { formatPrice, formatDate } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-import { Package, Edit, Copy, Check, Truck, Eye, User, MapPin, CreditCard, Calendar, ShoppingBag, Info, RefreshCw, XCircle, AlertCircle } from 'lucide-react'
+import { Package, Edit, Copy, Check, Truck, Eye, User, MapPin, CreditCard, Calendar, ShoppingBag, Info, RefreshCw, XCircle, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 
 const trackingSchema = Yup.object().shape({
@@ -44,19 +44,26 @@ const refundSchema = Yup.object().shape({
 
 export default function AdminOrdersPage() {
   const [status, setStatus] = useState<string>('all')
+  const [page, setPage] = useState(1)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [detailOrder, setDetailOrder] = useState<Order | null>(null)
   const [copiedTrackingId, setCopiedTrackingId] = useState<string | null>(null)
   
+  // Reset page to 1 when status changes
+  const handleStatusChange = (newStatus: string) => {
+    setStatus(newStatus)
+    setPage(1)
+  }
+  
   // Build query parameters conditionally to avoid undefined values
   // Memoize to ensure RTK Query properly detects parameter changes
   const queryParams = useMemo(() => {
     return status === 'all' 
-      ? { page: 1 }
-      : { page: 1, status }
-  }, [status])
+      ? { page, limit: 10 }
+      : { page, limit: 10, status }
+  }, [status, page])
   
   const { data, isLoading } = useGetAllOrdersQuery(queryParams)
   const [updateStatus] = useUpdateOrderStatusMutation()
@@ -65,7 +72,7 @@ export default function AdminOrdersPage() {
   const [isRefundDialogOpen, setIsRefundDialogOpen] = useState(false)
   const [refundOrderData, setRefundOrderData] = useState<Order | null>(null)
 
-  const handleStatusChange = async (order: Order, newStatus: string) => {
+  const handleOrderStatusChange = async (order: Order, newStatus: string) => {
     // Handle both 'id' and '_id' (MongoDB) fields
     const orderId = (order as any).id || (order as any)._id
     if (!orderId) {
@@ -231,7 +238,7 @@ export default function AdminOrdersPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center space-x-4">
-            <Select value={status} onValueChange={setStatus}>
+            <Select value={status} onValueChange={handleStatusChange}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="All Orders" />
               </SelectTrigger>
@@ -284,7 +291,7 @@ export default function AdminOrdersPage() {
                         <h3 className="font-semibold">Order #{order.orderNumber}</h3>
                         <Select
                           value={order.status}
-                          onValueChange={(value) => handleStatusChange(order, value)}
+                          onValueChange={(value) => handleOrderStatusChange(order, value)}
                         >
                           <SelectTrigger className="w-40">
                             <SelectValue placeholder="Select status" />
@@ -406,6 +413,33 @@ export default function AdminOrdersPage() {
                 </div>
                 )
               })}
+              
+              {/* Pagination */}
+              {data?.meta && data.meta.totalPages > 1 && (
+                <div className="mt-6 flex items-center justify-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1 || isLoading}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Page {data.meta.page} of {data.meta.totalPages} ({data.meta.total} total orders)
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.min(data.meta.totalPages, p + 1))}
+                    disabled={page === data.meta.totalPages || isLoading}
+                  >
+                    Next
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="py-12 text-center">
