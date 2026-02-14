@@ -338,7 +338,7 @@ export default function AdminOrdersPage() {
                           return (
                             <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
                               <p className="text-sm font-semibold text-red-700 dark:text-red-400">
-                                ⚠️ Payment Not Initiated — This order was created but payment hasn't been started yet. The customer hasn't been redirected to the payment gateway.
+                                ⚠️ Payment Not Initiated — This order was created but payment hasn&apos;t been started yet. The customer hasn&apos;t been redirected to the payment gateway.
                               </p>
                             </div>
                           )
@@ -346,7 +346,7 @@ export default function AdminOrdersPage() {
                           return (
                             <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
                               <p className="text-sm font-semibold text-red-700 dark:text-red-400">
-                                ⚠️ Payment Incomplete — The customer was redirected to the payment page but hasn't completed the payment yet. They may have closed the payment window or cancelled the transaction.
+                                ⚠️ Payment Incomplete — The customer was redirected to the payment page but hasn&apos;t completed the payment yet. They may have closed the payment window or cancelled the transaction.
                               </p>
                             </div>
                           )
@@ -354,7 +354,7 @@ export default function AdminOrdersPage() {
                           return (
                             <div className="mt-3 rounded-md bg-red-500/10 border border-red-500/20 p-3">
                               <p className="text-sm font-semibold text-red-700 dark:text-red-400">
-                                ⚠️ Payment Verification Pending — The customer claims payment was successful, but we're still waiting for confirmation from the payment gateway. Please verify manually if needed.
+                                ⚠️ Payment Verification Pending — The customer claims payment was successful, but we&apos;re still waiting for confirmation from the payment gateway. Please verify manually if needed.
                               </p>
                             </div>
                           )
