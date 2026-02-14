@@ -120,7 +120,7 @@ export interface Order {
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
   shippingAddress: Address
   billingAddress?: Address
-  paymentMethod?: string
+  paymentMethod?: 'razorpay' | 'cod' | string
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded'
   trackingNumber?: string
   // Razorpay payment fields

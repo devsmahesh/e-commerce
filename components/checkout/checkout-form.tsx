@@ -2,17 +2,19 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { useCreateOrderMutation } from '@/store/api/ordersApi'
 import { useCreateRazorpayOrderMutation, useVerifyRazorpayPaymentMutation } from '@/store/api/paymentsApi'
 import { useAddToCartMutation, useUpdateCartItemMutation, useGetCartQuery, useClearCartMutation } from '@/store/api/cartApi'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, CreditCard, Smartphone, Building2 } from 'lucide-react'
+import { Loader2, CreditCard, Smartphone, Building2, Truck, AlertTriangle } from 'lucide-react'
 import { Address } from '@/types'
 import { loadRazorpayScript, openRazorpayCheckout, rupeesToPaise, RazorpayResponse } from '@/lib/razorpay'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
 import { clearCart as clearCartAction } from '@/store/slices/cartSlice'
 import { formatPrice } from '@/lib/utils'
 import { Coupon } from '@/types'
+import { CODConfirmationDialog } from './cod-confirmation-dialog'
 
 interface CheckoutFormProps {
   address: Address
@@ -35,6 +37,8 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
   const [isRazorpayLoading, setIsRazorpayLoading] = useState(false)
   const [razorpayLoaded, setRazorpayLoaded] = useState(false)
   const [isSyncingCart, setIsSyncingCart] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'cod'>('razorpay')
+  const [showCODConfirmation, setShowCODConfirmation] = useState(false)
   const user = useAppSelector((state) => state.auth.user)
   const reduxCartItems = useAppSelector((state) => state.cart.items)
   
@@ -46,6 +50,7 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
   }>({})
 
   const isLoading = isCreatingOrder || isCreatingRazorpayOrder || isVerifying || isRazorpayLoading || isSyncingCart
+  const isCODLoading = isCreatingOrder || isSyncingCart
 
   // Load Razorpay script on mount
   useEffect(() => {
@@ -453,40 +458,213 @@ export function CheckoutForm({ address, total, shippingCost, coupon, onSuccess }
     }
   }
 
+  const handleCODOrder = async () => {
+    try {
+      setShowCODConfirmation(false) // Close dialog
+      setIsSyncingCart(true)
+
+      // Step 0: Sync cart items from Redux to backend
+      try {
+        const { data: latestCart } = await refetchCart()
+        const backendCartItems = latestCart?.items || []
+        
+        const backendCartMap = new Map(
+          backendCartItems.map(item => [item.product.id, item])
+        )
+
+        for (const reduxItem of reduxCartItems) {
+          const backendItem = backendCartMap.get(reduxItem.product.id)
+          
+          if (backendItem) {
+            if (backendItem.quantity !== reduxItem.quantity) {
+              await updateCartItem({
+                productId: reduxItem.product.id,
+                data: { quantity: reduxItem.quantity },
+              }).unwrap()
+            }
+          } else {
+            await addToCart({
+              productId: reduxItem.product.id,
+              quantity: reduxItem.quantity,
+            }).unwrap()
+          }
+        }
+      } catch (syncError: any) {
+        console.error('Error syncing cart:', syncError)
+        toast({
+          title: 'Warning',
+          description: 'Failed to sync cart items. Attempting to proceed anyway...',
+          variant: 'default',
+        })
+      }
+
+      setIsSyncingCart(false)
+
+      // Step 1: Create COD order in backend
+      const response = await createOrder({
+        shippingAddress: {
+          street: address.street,
+          city: address.city,
+          state: address.state,
+          zipCode: address.zipCode,
+          country: address.country,
+        },
+        shippingCost,
+        couponId: coupon?.id,
+        paymentMethod: 'cod',
+      }).unwrap()
+      
+      const orderResponse = (response as any)?.data || response
+
+      // Step 2: Clear cart after successful order creation
+      try {
+        await clearCart().unwrap()
+        dispatch(clearCartAction())
+      } catch (cartError) {
+        console.error('Error clearing cart:', cartError)
+      }
+
+      toast({
+        title: 'Order placed successfully!',
+        description: 'Your COD order has been placed. You will receive a confirmation email shortly.',
+      })
+
+      onSuccess()
+    } catch (error: any) {
+      console.error('COD order error:', error)
+      
+      let errorMessage = 'Failed to place order. Please try again.'
+      if (error?.data?.message) {
+        if (Array.isArray(error.data.message)) {
+          errorMessage = error.data.message.join('. ')
+        } else {
+          errorMessage = error.data.message
+        }
+      } else if (error?.message) {
+        errorMessage = error.message
+      }
+      
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handlePaymentMethodSelect = (method: 'razorpay' | 'cod') => {
+    setPaymentMethod(method)
+  }
+
+  const handleCODButtonClick = () => {
+    setPaymentMethod('cod')
+    setShowCODConfirmation(true)
+  }
+
+  const handleCODConfirmationClose = (open: boolean) => {
+    setShowCODConfirmation(open)
+    // If dialog is closed without confirmation, reset to razorpay
+    if (!open && paymentMethod === 'cod') {
+      setPaymentMethod('razorpay')
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-lg border-2 border-border p-6 bg-muted/30">
         <h3 className="mb-4 text-lg font-semibold">Payment Methods</h3>
-        <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="flex flex-col items-center p-3 rounded-lg bg-background border border-border">
-            <Smartphone className="h-8 w-8 mb-2 text-primary" />
-            <span className="text-sm font-medium">UPI</span>
-          </div>
-          <div className="flex flex-col items-center p-3 rounded-lg bg-background border border-border">
-            <CreditCard className="h-8 w-8 mb-2 text-primary" />
-            <span className="text-sm font-medium">Card</span>
-          </div>
-          <div className="flex flex-col items-center p-3 rounded-lg bg-background border border-border">
-            <Building2 className="h-8 w-8 mb-2 text-primary" />
-            <span className="text-sm font-medium">Net Banking</span>
-          </div>
+        
+        {/* Payment Method Selection */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {/* Razorpay Option */}
+          <button
+            type="button"
+            onClick={() => handlePaymentMethodSelect('razorpay')}
+            className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all ${
+              paymentMethod === 'razorpay'
+                ? 'border-primary bg-primary/5 shadow-sm'
+                : 'border-border hover:border-primary/50 bg-background'
+            }`}
+          >
+            <div className="flex gap-2 mb-2">
+              <Smartphone className="h-6 w-6 text-primary" />
+              <CreditCard className="h-6 w-6 text-primary" />
+              <Building2 className="h-6 w-6 text-primary" />
+            </div>
+            <span className="text-sm font-medium">Online Payment</span>
+            <span className="text-xs text-muted-foreground mt-1">UPI, Card, Net Banking</span>
+          </button>
+
+          {/* COD Option */}
+          <button
+            type="button"
+            onClick={() => handlePaymentMethodSelect('cod')}
+            className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all relative ${
+              paymentMethod === 'cod'
+                ? 'border-primary bg-primary/5 shadow-sm'
+                : 'border-border hover:border-primary/50 bg-background'
+            }`}
+          >
+            <Truck className="h-8 w-8 mb-2 text-primary" />
+            <span className="text-sm font-medium">Cash on Delivery</span>
+            <Badge variant="destructive" className="mt-1 text-xs">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              Manual Verification
+            </Badge>
+          </button>
         </div>
-        <p className="text-sm text-muted-foreground">
-          You will be redirected to Razorpay secure payment gateway to complete your payment.
-        </p>
+
+        {/* Warning Badge for COD */}
+        {paymentMethod === 'cod' && (
+          <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg mb-4">
+            <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
+              🚚 COD Orders are manually verified before dispatch.
+            </p>
+          </div>
+        )}
+
+        {paymentMethod === 'razorpay' && (
+          <p className="text-sm text-muted-foreground">
+            You will be redirected to Razorpay secure payment gateway to complete your payment.
+          </p>
+        )}
       </div>
 
-      <Button
-        onClick={handlePayment}
-        className="w-full"
-        disabled={!razorpayLoaded || isLoading}
-        size="lg"
-      >
-        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {!razorpayLoaded
-          ? 'Loading Payment Gateway...'
-          : `Pay ${formatPrice(total)}`}
-      </Button>
+      {paymentMethod === 'razorpay' ? (
+        <Button
+          onClick={handlePayment}
+          className="w-full"
+          disabled={!razorpayLoaded || isLoading}
+          size="lg"
+        >
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {!razorpayLoaded
+            ? 'Loading Payment Gateway...'
+            : `Pay ${formatPrice(total)}`}
+        </Button>
+      ) : (
+        <Button
+          onClick={handleCODButtonClick}
+          className="w-full"
+          disabled={isCODLoading}
+          size="lg"
+          variant="outline"
+        >
+          {isCODLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isCODLoading ? 'Processing...' : `Place COD Order - ${formatPrice(total)}`}
+        </Button>
+      )}
+
+      {/* COD Confirmation Dialog */}
+      <CODConfirmationDialog
+        open={showCODConfirmation}
+        onOpenChange={handleCODConfirmationClose}
+        address={address}
+        total={total}
+        onConfirm={handleCODOrder}
+        isLoading={isCODLoading}
+      />
     </div>
   )
 }

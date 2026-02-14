@@ -13,6 +13,7 @@ interface CreateOrderRequest {
   shippingAddress: ShippingAddress
   couponId?: string
   shippingCost?: number
+  paymentMethod?: 'razorpay' | 'cod'
 }
 
 interface UpdateOrderStatusRequest {

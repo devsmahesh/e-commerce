@@ -60,12 +60,38 @@ export default function AdminOrdersPage() {
   // Build query parameters conditionally to avoid undefined values
   // Memoize to ensure RTK Query properly detects parameter changes
   const queryParams = useMemo(() => {
+    // If filtering by COD, fetch all orders and filter on frontend
+    if (status === 'cod') {
+      return { page, limit: 100 } // Fetch more to account for filtering
+    }
     return status === 'all' 
       ? { page, limit: 10 }
       : { page, limit: 10, status }
   }, [status, page])
   
-  const { data, isLoading } = useGetAllOrdersQuery(queryParams)
+  const { data: allOrdersData, isLoading } = useGetAllOrdersQuery(queryParams)
+  
+  // Filter COD orders on frontend if COD filter is selected
+  const data = useMemo(() => {
+    if (status === 'cod' && allOrdersData) {
+      const codOrders = allOrdersData.data.filter((order) => order.paymentMethod === 'cod')
+      // Calculate pagination for filtered results
+      const startIndex = (page - 1) * 10
+      const endIndex = startIndex + 10
+      const paginatedCodOrders = codOrders.slice(startIndex, endIndex)
+      
+      return {
+        data: paginatedCodOrders,
+        meta: {
+          page,
+          limit: 10,
+          total: codOrders.length,
+          totalPages: Math.ceil(codOrders.length / 10),
+        },
+      }
+    }
+    return allOrdersData
+  }, [status, allOrdersData, page])
   const [updateStatus] = useUpdateOrderStatusMutation()
   const [refundOrder] = useRefundOrderMutation()
   const { toast } = useToast()
@@ -244,6 +270,7 @@ export default function AdminOrdersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Orders</SelectItem>
+                <SelectItem value="cod">COD Orders</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="paid">Paid</SelectItem>
                 <SelectItem value="processing">Processing</SelectItem>
@@ -289,23 +316,45 @@ export default function AdminOrdersPage() {
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold">Order #{order.orderNumber}</h3>
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) => handleOrderStatusChange(order, value)}
-                        >
-                          <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="paid">Paid</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="processing">Processing</SelectItem>
-                            <SelectItem value="shipped">Shipped</SelectItem>
-                            <SelectItem value="delivered">Delivered</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                            <SelectItem value="refunded">Refunded</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={order.status}
+                            onValueChange={(value) => handleOrderStatusChange(order, value)}
+                          >
+                            <SelectTrigger className="w-40">
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="paid">
+                                Paid{order.paymentMethod === 'cod' && ' (COD)'}
+                              </SelectItem>
+                              <SelectItem value="pending">
+                                Pending{order.paymentMethod === 'cod' && ' (COD)'}
+                              </SelectItem>
+                              <SelectItem value="processing">
+                                Processing{order.paymentMethod === 'cod' && ' (COD)'}
+                              </SelectItem>
+                              <SelectItem value="shipped">
+                                Shipped{order.paymentMethod === 'cod' && ' (COD)'}
+                              </SelectItem>
+                              <SelectItem value="delivered">
+                                Delivered{order.paymentMethod === 'cod' && ' (COD)'}
+                              </SelectItem>
+                              <SelectItem value="cancelled">
+                                Cancelled{order.paymentMethod === 'cod' && ' (COD)'}
+                              </SelectItem>
+                              <SelectItem value="refunded">
+                                Refunded{order.paymentMethod === 'cod' && ' (COD)'}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {order.paymentMethod === 'cod' && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-1 text-xs font-semibold text-blue-700 dark:text-blue-400 border border-blue-500/20">
+                              <Package className="h-3 w-3" />
+                              COD
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {formatDate(order.createdAt)} • {order.items.length} items
@@ -317,6 +366,12 @@ export default function AdminOrdersPage() {
                         <p className="text-lg font-semibold">
                           Total: {formatPrice(order.total)}
                         </p>
+                        {order.paymentMethod === 'cod' && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-1 text-xs font-semibold text-blue-700 dark:text-blue-400 border border-blue-500/20">
+                            <Package className="h-3 w-3" />
+                            COD
+                          </span>
+                        )}
                         {order.paymentStatus === 'paid' && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-1 text-xs font-semibold text-green-700 dark:text-green-400 border border-green-500/20">
                             <CreditCard className="h-3 w-3" />
@@ -345,7 +400,14 @@ export default function AdminOrdersPage() {
                         )}
                       </div>
                       {/* Payment Status Warning Messages */}
-                      {(() => {
+                      {order.paymentMethod === 'cod' && (
+                        <div className="mt-3 rounded-md bg-yellow-500/10 border border-yellow-500/20 p-3">
+                          <p className="text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+                            💰 Cash on Delivery (COD) Order — Payment will be collected upon delivery. Please verify the order before dispatch.
+                          </p>
+                        </div>
+                      )}
+                      {order.paymentMethod !== 'cod' && (() => {
                         const paymentStatus = order.paymentStatus?.toUpperCase()
                         if (paymentStatus === 'PENDING') {
                           return (
@@ -620,7 +682,15 @@ export default function AdminOrdersPage() {
                   <CardContent className="space-y-2">
                     <div>
                       <p className="text-sm text-muted-foreground">Payment Method</p>
-                      <p className="font-medium capitalize">{(detailOrder as any).paymentMethod || detailOrder.paymentMethod || 'N/A'}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium capitalize">{(detailOrder as any).paymentMethod || detailOrder.paymentMethod || 'N/A'}</p>
+                        {detailOrder.paymentMethod === 'cod' && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-1 text-xs font-semibold text-blue-700 dark:text-blue-400 border border-blue-500/20">
+                            <Package className="h-3 w-3" />
+                            COD Order
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Payment Status</p>
@@ -629,6 +699,46 @@ export default function AdminOrdersPage() {
                         {getRefundStatusBadge(detailOrder)}
                       </div>
                     </div>
+                    {/* COD Status Information */}
+                    {detailOrder.paymentMethod === 'cod' && (
+                      <div className="pt-2 border-t border-border space-y-2">
+                        <p className="text-xs text-muted-foreground font-semibold">COD Status</p>
+                        {(detailOrder as any).codVerifiedAt ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                              <span className="text-sm font-medium text-green-700 dark:text-green-400">Verified</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Verified on: {formatDate((detailOrder as any).codVerifiedAt)}
+                            </p>
+                            {(detailOrder as any).codVerifiedBy && (
+                              <p className="text-xs text-muted-foreground">
+                                Verified by: {(detailOrder as any).codVerifiedBy?.firstName || 'Admin'} {(detailOrder as any).codVerifiedBy?.lastName || ''}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                            <span className="text-sm font-medium text-yellow-700 dark:text-yellow-400">Not Verified</span>
+                          </div>
+                        )}
+                        {(detailOrder as any).codRefused && (
+                          <div className="mt-2 p-2 rounded-md bg-red-500/10 border border-red-500/20">
+                            <div className="flex items-center gap-2">
+                              <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                              <span className="text-sm font-semibold text-red-700 dark:text-red-400">Delivery Refused</span>
+                            </div>
+                            {(detailOrder as any).codRefusedAt && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Refused on: {formatDate((detailOrder as any).codRefusedAt)}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {detailOrder.paymentStatus === 'paid' && detailOrder.refundStatus !== 'processed' && (
                       <div className="pt-2">
                         <Button
